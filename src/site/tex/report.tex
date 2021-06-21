@@ -1,6 +1,6 @@
 \documentclass[12pt]{article}
 
-\usepackage{neurips_2021}
+\usepackage[preprint]{neurips_2021}
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
@@ -17,9 +17,14 @@
 \title{Report}
 
 \author{
-    Pavlo Melnyk,
-    Julian Alfredo Mendez,
-    Emanuel S\'{a}nchez Aimar
+    Pavlo Melnyk \\
+    \texttt{pavlo.melnyk@liu.se} \\
+    \And
+    Julian Alfredo Mendez \\
+    \texttt{julian.mendez@umu.se} \\
+    \And
+    Emanuel S\'{a}nchez Aimar \\
+    \texttt{emanuel.sanchez.aimar@liu.se} \\
 }
 
 \begin{document}
@@ -33,6 +38,10 @@
             Should be no more than 300 words.
         }
 
+
+        Recognition and representation of 3D data is a challenging and fruitful topic.
+        In this paper, we analyzed the studies considered in~\cite{pmlr-v80-achlioptas18a}, and re-implemented their approach using PyTorch\footnote{https://pytorch.org}.
+
     \end{abstract}
 
 
@@ -44,6 +53,8 @@
         At the high-level talk about what you worked on in your project and why it is important.
         Then give an overview of your results.
     }
+
+    The challenges of working with 3D images are numerous.
 
 
     \section{Related Work}
@@ -84,6 +95,10 @@
     \begin{ack}
         This work is partially supported by the Wallenberg AI, Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation.
     \end{ack}
+
+    \bibliographystyle{plain}
+
+    \bibliography{bibliography}
 
 \end{document}
 
