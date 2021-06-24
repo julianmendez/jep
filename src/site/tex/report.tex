@@ -12,6 +12,8 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}
 
+\usepackage{amsmath}
+
 \newcommand{\contentdescription}[1]{}
 
 \newcommand{\TODO}[2]{{#2}}
@@ -47,7 +49,7 @@
         They introduced a deep AutoEncoder (AE) network that has ``state-of-the-art reconstruction quality and generalization ability''.
         Their representations can outperform methods on 3D recognition tasks and let editing using algebraic manipulations.
 
-        They perform studies of GANs operating on the rae point clouds, GANs trained with the AEs, and Gaussian Mixture Models (GMMs).
+        They perform studies of GANs operating on the raw point clouds, GANs trained with the AEs.
 
 
     \end{abstract}
@@ -87,10 +89,74 @@
     with the following properties:
 
     \begin{itemize}
-        \item $d(x,y) = 0 \iff x = y$
+        \item $d(x,y) = 0 \Leftrightarrow x = y$
         \item $d(x,y) = d(y,x)$
         \item $d(x,y) \leq d(x,z) + d(z,y)$
     \end{itemize}
+
+    A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0. This is:
+    \begin{itemize}
+        \item $d(x,x) = 0$
+        \item $d(x,y) = d(y,x)$
+        \item $d(x,y) \leq d(x,z) + d(z,y)$
+    \end{itemize}
+
+
+    \textbf{Definition} The \emph{Earth Mover's distance (EMD)}~\cite{Rubner2000} is defined for two equally sized $S_{1}$, $S_{2}$, $S_{1} \subseteq \mathbb{R} ^{3}$ and $S_{2} \subseteq \mathbb{R} ^{3}$, $\Phi = \{ \phi \mid \phi: S_{1} \to S_{2} \land \phi \text{ is a bijection}\}$ then
+
+    \[d_{EMD}(S_{1}, S_{2}) = \min _{\phi \in \Phi} \sum_{x\in S_{1}} || x - \phi(x)||_{2}\]
+
+    \textbf{Definition} The Chamfer (pseudo)-distance (CD) is defined as follows:
+
+    \[
+        d_{CH}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
+        \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}
+    \]
+
+
+    \TODO{Rephrase this part}{
+        We have three models:
+        the basic one
+        the autoencoder version
+        3 configurations possibly 4, if we finish Wasserstein distance
+
+        method 1. point cloud -> GAN to generate the
+        method 2. autoencoder -> to train a representation, use the coder to generate
+        generator receives noise
+        we generate noise to generate a sample
+        we use the decoder to generate
+        there are 3 stages and 2 models
+        Stage 1
+
+        first we train our encoder
+        encoder > C > decoder
+        C is a compressed version of a point cloud
+        this is an autoencoder
+
+        In the raw GAN, it is created a point cloud instead of a compressed representation
+        Stage 2
+        we sample from Gaussian $N(0,\sigma)$
+
+
+        Stage 3
+        This is used to sample and create using GANs
+        $C' = \sigma(z)$
+        $P = D(C')$
+
+
+        The earth mover's distance and the Chamfer distance to measure the sampling error of the results
+
+        Two metrics: Coverage and Fidelity or Minimum matching distance,
+        These distances are used to measure the global error
+
+        Fidelity: for example, we sample chairs,
+        from an office chair, we look into the closest matching chair, from the generated ones
+        in this metric, we measure fidelity of generated samples with respect to to real samples
+        we match every point cloud in A, to a B with minimum distance
+
+        Coverage measured the number of point clouds in set B that have a match in set A
+        we haven't seen the threshold, though
+    }
 
 
     \section{Data, experiments and findings}
