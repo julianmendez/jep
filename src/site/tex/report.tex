@@ -14,6 +14,8 @@
 
 \newcommand{\contentdescription}[1]{}
 
+\newcommand{\TODO}[2]{{#2}}
+
 \title{Report}
 
 \author{
@@ -42,6 +44,12 @@
         Recognition and representation of 3D data is a challenging and fruitful topic.
         In this paper, we analyzed the studies considered in~\cite{pmlr-v80-achlioptas18a}, and re-implemented their approach using PyTorch\footnote{https://pytorch.org}.
 
+        They introduced a deep AutoEncoder (AE) network that has ``state-of-the-art reconstruction quality and generalization ability''.
+        Their representations can outperform methods on 3D recognition tasks and let editing using algebraic manipulations.
+
+        They perform studies of GANs operating on the rae point clouds, GANs trained with the AEs, and Gaussian Mixture Models (GMMs).
+
+
     \end{abstract}
 
 
@@ -59,14 +67,30 @@
 
     \section{Related Work}
     \contentdescription{
-        Related Work (5-15\%): Discuss the published work related to your project paper, the types of experiments you do and the additional method that you have added to this work or you have compared this paper with (if any).
+        Related Work (5-15\%): Discuss the published work related to your project paper, the types of experiments
+        you do and the additional method that you have added to this work or you have compared this paper with (if any).
     }
+
+    Some the relevant related work we can mention is described in~\cite{qi2017pointnet}.
 
 
     \section{Methods}
     \contentdescription{
         Methods (15-25\%): Describe the original paper's method to the extent that you would need to make your report and findings understandable. Otherwise, here you can describe other methods that you compare with or other methods that you apply on top of what you reimplemented. Here, you also try to justify any methodical modification or incremental changes that you have added to the original paper. It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
     }
+
+    \textbf{Definition} A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
+    Usually they represent a surface.
+
+    \textbf{Definition} A \emph{metric} or \emph{distance function} is a function defined
+    $d: X \times X \to \mathbb{R}_{\geq 0}$
+    with the following properties:
+
+    \begin{itemize}
+        \item $d(x,y) = 0 \iff x = y$
+        \item $d(x,y) = d(y,x)$
+        \item $d(x,y) \leq d(x,z) + d(z,y)$
+    \end{itemize}
 
 
     \section{Data, experiments and findings}
@@ -81,16 +105,70 @@
     \section{Challenges and Conclusions}
     \contentdescription{
         Challenges and Conclusions (5-15\%):
-        Challenges you faced when reimplementing the paper and conducting the experiments. Were all details in the paper? Or did you have to look in the authors code or even contact them to find about some details? Was parts of the code quite hard to get them to work as intended? Did you have optimize and tune several hyperparameters? Which ones? Did the framework you used make the implementation difficult in some ways?
+        Challenges you faced when reimplementing the paper and conducting the experiments.
+        Were all details in the paper?
+        Or did you have to look in the authors code or even contact them to find about some details?
+        Was parts of the code quite hard to get them to work as intended?
+        Did you have optimize and tune several hyperparameters?
+        Which ones?
+        Did the framework you used make the implementation difficult in some ways?
 
-        Summarize your key results - what have you learned? What points do you think one should consider when using the approach of the paper you chose for your project? Suggest ideas for future extensions or new applications of your ideas.
+        Summarize your key results - what have you learned?
+        What points do you think one should consider when using the approach of the paper you chose for your project?
+        Suggest ideas for future extensions or new applications of your ideas.
     }
 
 
     \section{Ethical consideration, societal impact, potential alignment with UN SDGs}
     \contentdescription{
-        Ethical consideration, societal impact, potential alignment with UN SDGs (5-10\%): Think and research! Are there any ethical considerations for the original paper, its problem or method, its way of conducting experiments? How about your task, your datasets, and the experiments you did? What societal impact can you imagine about the original paper and its contributions and results? How about your project report? How do you think this paper can push the UN SDG targets?
+        Ethical consideration, societal impact, potential alignment with UN SDGs (5-10\%):
+        Think and research!
+        Are there any ethical considerations for the original paper, its problem or method, its way of conducting experiments?
+        How about your task, your datasets, and the experiments you did?
+        What societal impact can you imagine about the original paper and its contributions and results?
+        How about your project report?
+        How do you think this paper can push the UN SDG targets?
     }
+
+    The Sustainable Development Goals (SDGs), were adopted by the United Nations in 2015 as a universal call
+    to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}, intended to be achieved by the year 2030.
+    For the sake of completeness, we mention the goals:
+    \begin{enumerate}
+        \item No Poverty,
+        \item Zero Hunger,
+        \item Good Health and Well-being,
+        \item Quality Education,
+        \item Gender Equality,
+        \item Clean Water and Sanitation,
+        \item Affordable and Clean Energy,
+        \item Decent Work and Economic Growth,
+        \item Industry, Innovation and Infrastructure,
+        \item Reducing Inequality,
+        \item Sustainable Cities and Communities,
+        \item Responsible Consumption and Production,
+        \item Climate Action,
+        \item Life Below Water,
+        \item Life On Land,
+        \item Peace, Justice, and Strong Institutions,
+        \item Partnerships for the Goals.
+    \end{enumerate}
+
+    Use of GANs can impact indirectly in all of the goals.
+    However, we have chosen three items, which we consider the most directly affected:
+    \textbf{Decent Work and Economic Growth}, \textbf{Industry, Innovation and Infrastructure}, and
+    \textbf{Sustainable Cities and Communities}.
+
+    We base our position on the fact ethical uses of machine learning can have a positive impact in societal development.
+    Technology can leave humans in overseeing positions, avoiding dangerous or repetitive tasks.
+    In addition, automation of processes, like the ones presented in this paper, can lead to a more efficient use of resources.
+
+    GANs can also be used to deceive systems.
+    The physical adversarial attack is analyzed by~\cite{zhao2019seeing} where they discuss
+    how a system can be used to confuse face recognition in authentication and objection detection in autonomous driving cars.
+
+    These systems like this one should be deployed only if the ethical stakeholders accept them.
+    Especially, for a specific task, the first questions is: ``Should be use an AI system for that?''.
+
 
     \begin{ack}
         This work is partially supported by the Wallenberg AI, Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation.
