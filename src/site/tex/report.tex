@@ -158,13 +158,29 @@
         we haven't seen the threshold, though
     }
 
+    \textbf{Definition} The \emph{autoencoder} architecture is a design to reproduce its input.
+    This can be represented by:
+    \[ x \to E \to z \to D \to \hat{x} \]
+
+    \textbf{Definition} The basic architecture used in this paper is the \emph{Generative Adversarial Networks} (GANs).
+    It is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
+    The generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function.
+    The discriminator then needs to distinguish the synthesized examples from the real ones.
+
+    \textbf{Definition} Given two sets of point clouds $A$ anv $B$, \emph{coverage} measures the fraction of the point clouds in $B$ that were matched to point clouds in $A$.
+
 
     \section{Data, experiments and findings}
     \contentdescription{
         Data, experiments and findings (30-40\%):
 
-        Describe the data you are working with for your project. What type of data is it? Where did it come from? How much data are you working with? Did you have to do any preprocessing, filtering, or other special treatment to use this data in your project?
-        Describe and present the experiments that you performed and what is the reason for those experiments. Where applicable define evaluation metrics that you used. Discuss the results that you got.
+        Describe the data you are working with for your project.
+        What type of data is it?
+        Where did it come from?
+        How much data are you working with?
+        Did you have to do any preprocessing, filtering, or other special treatment to use this data in your project?
+        Describe and present the experiments that you performed and what is the reason for those experiments.
+        Where applicable define evaluation metrics that you used. Discuss the results that you got.
     }
 
 
