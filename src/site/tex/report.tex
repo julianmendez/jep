@@ -12,7 +12,11 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}
 
+\usepackage{amsmath}
+
 \newcommand{\contentdescription}[1]{}
+
+\newcommand{\TODO}[2]{{#2}}
 
 \title{Report}
 
@@ -42,6 +46,12 @@
         Recognition and representation of 3D data is a challenging and fruitful topic.
         In this paper, we analyzed the studies considered in~\cite{pmlr-v80-achlioptas18a}, and re-implemented their approach using PyTorch\footnote{https://pytorch.org}.
 
+        They introduced a deep AutoEncoder (AE) network that has ``state-of-the-art reconstruction quality and generalization ability''.
+        Their representations can outperform methods on 3D recognition tasks and let editing using algebraic manipulations.
+
+        They perform studies of GANs operating on the raw point clouds, GANs trained with the AEs.
+
+
     \end{abstract}
 
 
@@ -59,8 +69,11 @@
 
     \section{Related Work}
     \contentdescription{
-        Related Work (5-15\%): Discuss the published work related to your project paper, the types of experiments you do and the additional method that you have added to this work or you have compared this paper with (if any).
+        Related Work (5-15\%): Discuss the published work related to your project paper, the types of experiments
+        you do and the additional method that you have added to this work or you have compared this paper with (if any).
     }
+
+    Some the relevant related work we can mention is described in~\cite{qi2017pointnet}.
 
 
     \section{Methods}
@@ -68,29 +81,176 @@
         Methods (15-25\%): Describe the original paper's method to the extent that you would need to make your report and findings understandable. Otherwise, here you can describe other methods that you compare with or other methods that you apply on top of what you reimplemented. Here, you also try to justify any methodical modification or incremental changes that you have added to the original paper. It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
     }
 
+    \textbf{Definition} A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
+    Usually they represent a surface.
+
+    \textbf{Definition} A \emph{metric} or \emph{distance function} is a function defined
+    $d: X \times X \to \mathbb{R}_{\geq 0}$
+    with the following properties:
+
+    \begin{itemize}
+        \item $d(x,y) = 0 \Leftrightarrow x = y$
+        \item $d(x,y) = d(y,x)$
+        \item $d(x,y) \leq d(x,z) + d(z,y)$
+    \end{itemize}
+
+    A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0. This is:
+    \begin{itemize}
+        \item $d(x,x) = 0$
+        \item $d(x,y) = d(y,x)$
+        \item $d(x,y) \leq d(x,z) + d(z,y)$
+    \end{itemize}
+
+
+    \textbf{Definition} The \emph{Earth Mover's distance (EMD)}~\cite{Rubner2000} is defined for two equally sized $S_{1}$, $S_{2}$, $S_{1} \subseteq \mathbb{R} ^{3}$ and $S_{2} \subseteq \mathbb{R} ^{3}$, $\Phi = \{ \phi \mid \phi: S_{1} \to S_{2} \land \phi \text{ is a bijection}\}$ then
+
+    \[d_{EMD}(S_{1}, S_{2}) = \min _{\phi \in \Phi} \sum_{x\in S_{1}} || x - \phi(x)||_{2}\]
+
+    \textbf{Definition} The Chamfer (pseudo)-distance (CD) is defined as follows:
+
+    \[
+        d_{CH}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
+        \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}
+    \]
+
+
+    \TODO{Rephrase this part}{
+        We have three models:
+        the basic one
+        the autoencoder version
+        3 configurations possibly 4, if we finish Wasserstein distance
+
+        method 1. point cloud -> GAN to generate the
+        method 2. autoencoder -> to train a representation, use the coder to generate
+        generator receives noise
+        we generate noise to generate a sample
+        we use the decoder to generate
+        there are 3 stages and 2 models
+        Stage 1
+
+        first we train our encoder
+        encoder > C > decoder
+        C is a compressed version of a point cloud
+        this is an autoencoder
+
+        In the raw GAN, it is created a point cloud instead of a compressed representation
+        Stage 2
+        we sample from Gaussian $N(0,\sigma)$
+
+
+        Stage 3
+        This is used to sample and create using GANs
+        $C' = \sigma(z)$
+        $P = D(C')$
+
+
+        The earth mover's distance and the Chamfer distance to measure the sampling error of the results
+
+        Two metrics: Coverage and Fidelity or Minimum matching distance,
+        These distances are used to measure the global error
+
+        Fidelity: for example, we sample chairs,
+        from an office chair, we look into the closest matching chair, from the generated ones
+        in this metric, we measure fidelity of generated samples with respect to to real samples
+        we match every point cloud in A, to a B with minimum distance
+
+        Coverage measured the number of point clouds in set B that have a match in set A
+        we haven't seen the threshold, though
+    }
+
+    \textbf{Definition} The \emph{autoencoder} architecture is a design to reproduce its input.
+    This can be represented by:
+    \[ x \to E \to z \to D \to \hat{x} \]
+
+    \textbf{Definition} The basic architecture used in this paper is the \emph{Generative Adversarial Networks} (GANs).
+    It is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
+    The generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function.
+    The discriminator then needs to distinguish the synthesized examples from the real ones.
+
+    \textbf{Definition} Given two sets of point clouds $A$ anv $B$, \emph{coverage} measures the fraction of the point clouds in $B$ that were matched to point clouds in $A$.
+
 
     \section{Data, experiments and findings}
     \contentdescription{
         Data, experiments and findings (30-40\%):
 
-        Describe the data you are working with for your project. What type of data is it? Where did it come from? How much data are you working with? Did you have to do any preprocessing, filtering, or other special treatment to use this data in your project?
-        Describe and present the experiments that you performed and what is the reason for those experiments. Where applicable define evaluation metrics that you used. Discuss the results that you got.
+        Describe the data you are working with for your project.
+        What type of data is it?
+        Where did it come from?
+        How much data are you working with?
+        Did you have to do any preprocessing, filtering, or other special treatment to use this data in your project?
+        Describe and present the experiments that you performed and what is the reason for those experiments.
+        Where applicable define evaluation metrics that you used. Discuss the results that you got.
     }
 
 
     \section{Challenges and Conclusions}
     \contentdescription{
         Challenges and Conclusions (5-15\%):
-        Challenges you faced when reimplementing the paper and conducting the experiments. Were all details in the paper? Or did you have to look in the authors code or even contact them to find about some details? Was parts of the code quite hard to get them to work as intended? Did you have optimize and tune several hyperparameters? Which ones? Did the framework you used make the implementation difficult in some ways?
+        Challenges you faced when reimplementing the paper and conducting the experiments.
+        Were all details in the paper?
+        Or did you have to look in the authors code or even contact them to find about some details?
+        Was parts of the code quite hard to get them to work as intended?
+        Did you have optimize and tune several hyperparameters?
+        Which ones?
+        Did the framework you used make the implementation difficult in some ways?
 
-        Summarize your key results - what have you learned? What points do you think one should consider when using the approach of the paper you chose for your project? Suggest ideas for future extensions or new applications of your ideas.
+        Summarize your key results - what have you learned?
+        What points do you think one should consider when using the approach of the paper you chose for your project?
+        Suggest ideas for future extensions or new applications of your ideas.
     }
 
 
     \section{Ethical consideration, societal impact, potential alignment with UN SDGs}
     \contentdescription{
-        Ethical consideration, societal impact, potential alignment with UN SDGs (5-10\%): Think and research! Are there any ethical considerations for the original paper, its problem or method, its way of conducting experiments? How about your task, your datasets, and the experiments you did? What societal impact can you imagine about the original paper and its contributions and results? How about your project report? How do you think this paper can push the UN SDG targets?
+        Ethical consideration, societal impact, potential alignment with UN SDGs (5-10\%):
+        Think and research!
+        Are there any ethical considerations for the original paper, its problem or method, its way of conducting experiments?
+        How about your task, your datasets, and the experiments you did?
+        What societal impact can you imagine about the original paper and its contributions and results?
+        How about your project report?
+        How do you think this paper can push the UN SDG targets?
     }
+
+    The Sustainable Development Goals (SDGs), were adopted by the United Nations in 2015 as a universal call
+    to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}, intended to be achieved by the year 2030.
+    For the sake of completeness, we mention the goals:
+    \begin{enumerate}
+        \item No Poverty,
+        \item Zero Hunger,
+        \item Good Health and Well-being,
+        \item Quality Education,
+        \item Gender Equality,
+        \item Clean Water and Sanitation,
+        \item Affordable and Clean Energy,
+        \item Decent Work and Economic Growth,
+        \item Industry, Innovation and Infrastructure,
+        \item Reducing Inequality,
+        \item Sustainable Cities and Communities,
+        \item Responsible Consumption and Production,
+        \item Climate Action,
+        \item Life Below Water,
+        \item Life On Land,
+        \item Peace, Justice, and Strong Institutions,
+        \item Partnerships for the Goals.
+    \end{enumerate}
+
+    Use of GANs can impact indirectly in all of the goals.
+    However, we have chosen three items, which we consider the most directly affected:
+    \textbf{Decent Work and Economic Growth}, \textbf{Industry, Innovation and Infrastructure}, and
+    \textbf{Sustainable Cities and Communities}.
+
+    We base our position on the fact ethical uses of machine learning can have a positive impact in societal development.
+    Technology can leave humans in overseeing positions, avoiding dangerous or repetitive tasks.
+    In addition, automation of processes, like the ones presented in this paper, can lead to a more efficient use of resources.
+
+    GANs can also be used to deceive systems.
+    The physical adversarial attack is analyzed by~\cite{zhao2019seeing} where they discuss
+    how a system can be used to confuse face recognition in authentication and objection detection in autonomous driving cars.
+
+    These systems like this one should be deployed only if the ethical stakeholders accept them.
+    Especially, for a specific task, the first questions is: ``Should be use an AI system for that?''.
+
 
     \begin{ack}
         This work is partially supported by the Wallenberg AI, Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation.
