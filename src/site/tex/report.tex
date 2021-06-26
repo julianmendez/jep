@@ -128,6 +128,11 @@
         The \emph{autoencoder} architecture is a design to reproduce its input.
         This can be represented by:
         \[x \to E \to z \to D \to \hat{x}\]
+
+        On the one hand, the \emph{encoder} (E) learns the compression of a data point $x$ to $z$,
+        which is the \emph{latent representation} of $x$.
+
+        On the other hand, the \emph{decoder} (D) tries to reconstruct $x$ creating $\hat{x}$ based on $z$.
     \end{definition}
 
     \begin{definition}
@@ -183,6 +188,7 @@
     $P = D(C')$
 
     We used examples of a chair, a table, and an airplane.
+
 
     \section{Challenges and Conclusions}
     \contentdescription{
