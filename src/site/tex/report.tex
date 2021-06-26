@@ -14,6 +14,9 @@
 
 \usepackage{amsmath}
 
+\usepackage{amsthm}
+\newtheorem{definition}{Definition}
+
 \newcommand{\contentdescription}[1]{}
 
 \newcommand{\TODO}[2]{{#2}}
@@ -42,7 +45,6 @@
             Should be no more than 300 words.
         }
 
-
         Recognition and representation of 3D data is a challenging and fruitful topic.
         In this paper, we analyzed the studies considered in~\cite{pmlr-v80-achlioptas18a}, and re-implemented their approach using PyTorch\footnote{https://pytorch.org}.
 
@@ -50,8 +52,6 @@
         Their representations can outperform methods on 3D recognition tasks and let editing using algebraic manipulations.
 
         They perform studies of GANs operating on the raw point clouds, GANs trained with the AEs.
-
-
     \end{abstract}
 
 
@@ -64,7 +64,15 @@
         Then give an overview of your results.
     }
 
-    The challenges of working with 3D images are numerous.
+    The applications of representing three-dimensional (3D) images are numerous, like its use in augmented and virtual reality.
+    In turn, these can be applied on a variety of domains, ranging from medicine to gaming.
+
+    One of the critical problems of 3D sampling is the different rotations an image can have.
+
+    We applied three approaches: raw-GAN, autoencoder, and $l$-GAN, which are defined in the subsequent sections.
+
+    This report is about a reimplementation of~\cite{pmlr-v80-achlioptas18a} using PyTorch.
+    In the related work, we roughly touch related papers used in~\cite{pmlr-v80-achlioptas18a}.
 
 
     \section{Related Work}
@@ -81,93 +89,74 @@
         Methods (15-25\%): Describe the original paper's method to the extent that you would need to make your report and findings understandable. Otherwise, here you can describe other methods that you compare with or other methods that you apply on top of what you reimplemented. Here, you also try to justify any methodical modification or incremental changes that you have added to the original paper. It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
     }
 
-    \textbf{Definition} A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
-    Usually they represent a surface.
+    \begin{definition}
+        A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
+        Usually they represent a surface.
+    \end{definition}
 
-    \textbf{Definition} A \emph{metric} or \emph{distance function} is a function defined
-    $d: X \times X \to \mathbb{R}_{\geq 0}$
-    with the following properties:
+    \begin{definition}
+        A \emph{metric} or \emph{distance function} is a function defined
+        $d: X \times X \to \mathbb{R}_{\geq 0}$
+        with the following properties:
 
-    \begin{itemize}
-        \item $d(x,y) = 0 \Leftrightarrow x = y$
-        \item $d(x,y) = d(y,x)$
-        \item $d(x,y) \leq d(x,z) + d(z,y)$
-    \end{itemize}
+        \begin{enumerate}
+            \item $d(x,y) = 0 \Leftrightarrow x = y$
+            \item $d(x,y) = d(y,x)$
+            \item $d(x,y) \leq d(x,z) + d(z,y)$
+        \end{enumerate}
 
-    A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0. This is:
-    \begin{itemize}
-        \item $d(x,x) = 0$
-        \item $d(x,y) = d(y,x)$
-        \item $d(x,y) \leq d(x,z) + d(z,y)$
-    \end{itemize}
+        A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0. Thus, the first requirement is replaced by:
+        \[d(x,x) = 0\]
+    \end{definition}
 
+    \begin{definition}
+        The \emph{Earth Mover's distance (EMD)}~\cite{Rubner2000} is defined for two equally sized $S_{1}$, $S_{2}$, $S_{1} \subseteq \mathbb{R} ^{3}$ and $S_{2} \subseteq \mathbb{R} ^{3}$, $\Phi = \{ \phi \mid \phi: S_{1} \to S_{2} \land \phi \text{ is a bijection}\}$ then
 
-    \textbf{Definition} The \emph{Earth Mover's distance (EMD)}~\cite{Rubner2000} is defined for two equally sized $S_{1}$, $S_{2}$, $S_{1} \subseteq \mathbb{R} ^{3}$ and $S_{2} \subseteq \mathbb{R} ^{3}$, $\Phi = \{ \phi \mid \phi: S_{1} \to S_{2} \land \phi \text{ is a bijection}\}$ then
+        \[d_{EMD}(S_{1}, S_{2}) = \min _{\phi \in \Phi} \sum_{x \in S_{1}} || x - \phi(x)||_{2}\]
+    \end{definition}
 
-    \[d_{EMD}(S_{1}, S_{2}) = \min _{\phi \in \Phi} \sum_{x\in S_{1}} || x - \phi(x)||_{2}\]
+    \begin{definition}
+        The Chamfer (pseudo)-distance (CD) is defined as follows:
 
-    \textbf{Definition} The Chamfer (pseudo)-distance (CD) is defined as follows:
+        \[d_{CD}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
+        \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}\]
 
-    \[
-        d_{CH}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
-        \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}
-    \]
+        The EMD and the CD are used to measure the sampling error of the results.
+    \end{definition}
 
+    \begin{definition}
+        The \emph{autoencoder} architecture is a design to reproduce its input.
+        This can be represented by:
+        \[x \to E \to z \to D \to \hat{x}\]
 
-    \TODO{Rephrase this part}{
-        We have three models:
-        the basic one
-        the autoencoder version
-        3 configurations possibly 4, if we finish Wasserstein distance
+        On the one hand, the \emph{encoder} (E) learns the compression of a data point $x$ to $z$,
+        which is the \emph{latent representation} of $x$.
 
-        method 1. point cloud -> GAN to generate the
-        method 2. autoencoder -> to train a representation, use the coder to generate
-        generator receives noise
-        we generate noise to generate a sample
-        we use the decoder to generate
-        there are 3 stages and 2 models
-        Stage 1
+        On the other hand, the \emph{decoder} (D) tries to reconstruct $x$ creating $\hat{x}$ based on $z$.
+    \end{definition}
 
-        first we train our encoder
-        encoder > C > decoder
-        C is a compressed version of a point cloud
-        this is an autoencoder
+    \begin{definition}
+        The basic architecture used in this paper is the \emph{Generative Adversarial Networks} (GANs).
+        It is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
+        The generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function.
+        The discriminator then needs to distinguish the synthesized examples from the real ones.
+    \end{definition}
 
-        In the raw GAN, it is created a point cloud instead of a compressed representation
-        Stage 2
-        we sample from Gaussian $N(0,\sigma)$
+    \begin{definition}
+        Given two sets of point clouds $A$ and $B$, \emph{coverage} measures the fraction of the point clouds in $B$ that were matched to point clouds in $A$.
+        The task is for each point cloud in $A$, find the closest neighbor in $B$ using a distance that can be either CD or EMD.
+    \end{definition}
 
+    \begin{definition}
+        We define the \emph{fidelity} of $A$ with respect to $B$ as the \emph{minimum matching distance} (MMD) of matching each point in $B$ to a point in $A$.
+        The MMD is in turn computed as an average of the individual point-wise distances, using either the CD or EMD.
+        They are called the MMD-CD and MMD-EMD respectively.
+    \end{definition}
 
-        Stage 3
-        This is used to sample and create using GANs
-        $C' = \sigma(z)$
-        $P = D(C')$
+    Fidelity and coverage are meant to measure the global error of the computation.
 
-
-        The earth mover's distance and the Chamfer distance to measure the sampling error of the results
-
-        Two metrics: Coverage and Fidelity or Minimum matching distance,
-        These distances are used to measure the global error
-
-        Fidelity: for example, we sample chairs,
-        from an office chair, we look into the closest matching chair, from the generated ones
-        in this metric, we measure fidelity of generated samples with respect to to real samples
-        we match every point cloud in A, to a B with minimum distance
-
-        Coverage measured the number of point clouds in set B that have a match in set A
-        we haven't seen the threshold, though
-    }
-
-    \textbf{Definition} The \emph{autoencoder} architecture is a design to reproduce its input.
-    This can be represented by:
-    \[ x \to E \to z \to D \to \hat{x} \]
-
-    \textbf{Definition} The basic architecture used in this paper is the \emph{Generative Adversarial Networks} (GANs).
-    It is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
-    The generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function.
-    The discriminator then needs to distinguish the synthesized examples from the real ones.
-
-    \textbf{Definition} Given two sets of point clouds $A$ anv $B$, \emph{coverage} measures the fraction of the point clouds in $B$ that were matched to point clouds in $A$.
+    Let us see an intuitive example behind fidelity and the MMD.
+    If we sample chairs, we can look at the closes matching chair from the generated ones for a given metric.
 
 
     \section{Data, experiments and findings}
@@ -182,6 +171,23 @@
         Describe and present the experiments that you performed and what is the reason for those experiments.
         Where applicable define evaluation metrics that you used. Discuss the results that you got.
     }
+
+    We can describe our experiments using 3 stages.
+
+    \textbf{Stage 1}
+    We trained our encoder (E) as defined in the definition of autoencoder.
+    In the bottleneck, $z$ represents the compressed representation.
+    For comparison, in the raw-GAN approach, a point cloud is used instead of a compressed representation.
+
+    \textbf{Stage 2}
+    We sampled a Gaussian distribution $\mathcal{N}(0,\sigma)$
+
+    \textbf{Stage 3}
+    This is used to sample and create using GANs
+    $C' = \sigma(z)$
+    $P = D(C')$
+
+    We used examples of a chair, a table, and an airplane.
 
 
     \section{Challenges and Conclusions}
@@ -214,26 +220,26 @@
 
     The Sustainable Development Goals (SDGs), were adopted by the United Nations in 2015 as a universal call
     to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}, intended to be achieved by the year 2030.
-    For the sake of completeness, we mention the goals:
-    \begin{enumerate}
-        \item No Poverty,
-        \item Zero Hunger,
-        \item Good Health and Well-being,
-        \item Quality Education,
-        \item Gender Equality,
-        \item Clean Water and Sanitation,
-        \item Affordable and Clean Energy,
-        \item Decent Work and Economic Growth,
-        \item Industry, Innovation and Infrastructure,
-        \item Reducing Inequality,
-        \item Sustainable Cities and Communities,
-        \item Responsible Consumption and Production,
-        \item Climate Action,
-        \item Life Below Water,
-        \item Life On Land,
-        \item Peace, Justice, and Strong Institutions,
-        \item Partnerships for the Goals.
-    \end{enumerate}
+    % For the sake of completeness, we mention the goals:
+    % \begin{enumerate}
+    %    \item No Poverty,
+    %    \item Zero Hunger,
+    %    \item Good Health and Well-being,
+    %    \item Quality Education,
+    %    \item Gender Equality,
+    %    \item Clean Water and Sanitation,
+    %    \item Affordable and Clean Energy,
+    %    \item Decent Work and Economic Growth,
+    %    \item Industry, Innovation and Infrastructure,
+    %    \item Reducing Inequality,
+    %    \item Sustainable Cities and Communities,
+    %    \item Responsible Consumption and Production,
+    %    \item Climate Action,
+    %    \item Life Below Water,
+    %    \item Life On Land,
+    %    \item Peace, Justice, and Strong Institutions,
+    %    \item Partnerships for the Goals.
+    %\end{enumerate}
 
     Use of GANs can impact indirectly in all of the goals.
     However, we have chosen three items, which we consider the most directly affected:
