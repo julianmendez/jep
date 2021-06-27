@@ -40,7 +40,7 @@
 
     \begin{abstract}
         \contentdescription{
-            Abstract (5-10\%) :
+            Abstract (5-10\%):
             Give an overview of what you have done in the project with the key results and findings of your work.
             Should be no more than 300 words.
         }
@@ -72,27 +72,35 @@
     We applied three approaches: raw-GAN, autoencoder, and $l$-GAN, which are defined in the subsequent sections.
 
     This report is about a reimplementation of~\cite{pmlr-v80-achlioptas18a} using PyTorch.
-    In the related work, we roughly touch related papers used in~\cite{pmlr-v80-achlioptas18a}.
 
 
     \section{Related Work}
     \contentdescription{
-        Related Work (5-15\%): Discuss the published work related to your project paper, the types of experiments
-        you do and the additional method that you have added to this work or you have compared this paper with (if any).
+        Related Work (5-15\%):
+        Discuss the published work related to your project paper, the types of experiments you do and the additional method that you have added to this work or you have compared this paper with (if any).
     }
 
-    Some the relevant related work we can mention is described in~\cite{qi2017pointnet}.
+    Some the relevant related work we can mention is described in~\cite{arxiv:1612.00593}.
+
+    The architectures used in that paper is based on AutoEncoders (AEs)\cite{doi:10.5555/65669.104451}\cite{arxiv:1312.6114},
+    and Gnerative Adversarial Networks (GANs)\cite{NIPS2014_5ca3e9b1}\cite{arxiv:1511.06434}\cite{arxiv:1612.02136},
+    and were used to generate samples from complex underlying distributions.
 
 
     \section{Methods}
     \contentdescription{
-        Methods (15-25\%): Describe the original paper's method to the extent that you would need to make your report and findings understandable. Otherwise, here you can describe other methods that you compare with or other methods that you apply on top of what you reimplemented. Here, you also try to justify any methodical modification or incremental changes that you have added to the original paper. It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
+        Methods (15-25\%):
+        Describe the original paper's method to the extent that you would need to make your report and findings understandable.
+        Otherwise, here you can describe other methods that you compare with or other methods that you apply on top of what you reimplemented.
+        Here, you also try to justify any methodical modification or incremental changes that you have added to the original paper.
+        It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
     }
 
     \begin{definition}
         A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
-        Usually they represent a surface.
     \end{definition}
+
+    In this paper, a point cloud usually represents a surface.
 
     \begin{definition}
         A \emph{metric} or \emph{distance function} is a function defined
@@ -105,64 +113,60 @@
             \item $d(x,y) \leq d(x,z) + d(z,y)$
         \end{enumerate}
 
-        A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0. Thus, the first requirement is replaced by:
+        A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0, and the first requirement is replaced by:
         \[d(x,x) = 0\]
     \end{definition}
 
     \begin{definition}
-        The \emph{Earth Mover's distance (EMD)}~\cite{Rubner2000} is defined for two equally sized $S_{1}$, $S_{2}$, $S_{1} \subseteq \mathbb{R} ^{3}$ and $S_{2} \subseteq \mathbb{R} ^{3}$, $\Phi = \{ \phi \mid \phi: S_{1} \to S_{2} \land \phi \text{ is a bijection}\}$ then
+        The \emph{Earth Mover's distance (EMD)}~\cite{doi:10.1023/A:1026543900054} for two equally sized $S_{1}$, $S_{2}$, $S_{1} \subseteq \mathbb{R} ^{3}$ and $S_{2} \subseteq \mathbb{R} ^{3}$, $\Phi = \{ \phi \mid \phi: S_{1} \to S_{2} \land \phi \text{ is a bijection}\}$ is
 
         \[d_{EMD}(S_{1}, S_{2}) = \min _{\phi \in \Phi} \sum_{x \in S_{1}} || x - \phi(x)||_{2}\]
     \end{definition}
 
     \begin{definition}
-        The Chamfer (pseudo)-distance (CD) is defined as follows:
+        The \emph{Chamfer (pseudo)-distance (CD)} is defined as follows:
 
         \[d_{CD}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
         \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}\]
-
-        The EMD and the CD are used to measure the sampling error of the results.
     \end{definition}
 
+    The EMD and the CD are used to measure the sampling error of the results.
+
     \begin{definition}
-        The \emph{autoencoder} architecture is a design to reproduce its input.
-        This can be represented by:
+        The \emph{autoencoder} architecture is a design to reproduce its input, and is composed by an \emph{encoder} (E) and a \emph{decoder} (D).
+
+        The encoder takes an input $x$ and produces a compressed version $z$, which is called the \emph{latent representation} of $x$. The decoder tries to reconstruct $x$ by using $z$ as input, and returns $\hat{x}$ as output.
+
+        The whole pipeline can be represented by:
         \[x \to E \to z \to D \to \hat{x}\]
+    \end{definition}
 
-        On the one hand, the \emph{encoder} (E) learns the compression of a data point $x$ to $z$,
-        which is the \emph{latent representation} of $x$.
+    The basic architecture used in this paper is the Generative Adversarial Networks (GANs).
 
-        On the other hand, the \emph{decoder} (D) tries to reconstruct $x$ creating $\hat{x}$ based on $z$.
+    \begin{definition}
+        A \emph{Generative Adversarial Network} (GAN) is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
+        In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones.
     \end{definition}
 
     \begin{definition}
-        The basic architecture used in this paper is the \emph{Generative Adversarial Networks} (GANs).
-        It is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
-        The generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function.
-        The discriminator then needs to distinguish the synthesized examples from the real ones.
-    \end{definition}
-
-    \begin{definition}
-        Given two sets of point clouds $A$ and $B$, \emph{coverage} measures the fraction of the point clouds in $B$ that were matched to point clouds in $A$.
-        The task is for each point cloud in $A$, find the closest neighbor in $B$ using a distance that can be either CD or EMD.
+        Given two sets of point clouds $A$ and $B$, and given a distance, either CD or EMD, we say that \emph{coverage} is a measure for the fraction of the point clouds in $B$ that were matched to point clouds in $A$, such that each point cloud in $A$ is related to its the closest neighbor in $B$ using the given distance.
     \end{definition}
 
     \begin{definition}
         We define the \emph{fidelity} of $A$ with respect to $B$ as the \emph{minimum matching distance} (MMD) of matching each point in $B$ to a point in $A$.
-        The MMD is in turn computed as an average of the individual point-wise distances, using either the CD or EMD.
-        They are called the MMD-CD and MMD-EMD respectively.
+        The \emph{MMD} is computed as an average of the individual point-wise distances, using either the CD or EMD.
+        They are called the \emph{MMD-CD} and \emph{MMD-EMD} respectively.
     \end{definition}
 
     Fidelity and coverage are meant to measure the global error of the computation.
 
     Let us see an intuitive example behind fidelity and the MMD.
-    If we sample chairs, we can look at the closes matching chair from the generated ones for a given metric.
+    If we sample chairs, we can look at the closest matching chair from the generated ones for a given metric.
 
 
     \section{Data, experiments and findings}
     \contentdescription{
         Data, experiments and findings (30-40\%):
-
         Describe the data you are working with for your project.
         What type of data is it?
         Where did it come from?
@@ -180,7 +184,7 @@
     For comparison, in the raw-GAN approach, a point cloud is used instead of a compressed representation.
 
     \textbf{Stage 2}
-    We sampled a Gaussian distribution $\mathcal{N}(0,\sigma)$
+    We sampled using a Gaussian distribution $\mathcal{N}(0,\sigma)$.
 
     \textbf{Stage 3}
     This is used to sample and create using GANs
@@ -205,6 +209,13 @@
         What points do you think one should consider when using the approach of the paper you chose for your project?
         Suggest ideas for future extensions or new applications of your ideas.
     }
+
+    One of the conclusions we arrived is that we were able to reproduce the results in~\cite{pmlr-v80-achlioptas18a}.
+
+    The latent space GANs (l-GANs) was able to achieve better reconstructions.
+    By contrast, the raw GAN performance is considerably lower when not enough data is provided.
+
+    For example, in some of our experiments we found that the lamp data were insufficient to train the raw GAN reasonably well.
 
 
     \section{Ethical consideration, societal impact, potential alignment with UN SDGs}
@@ -251,7 +262,7 @@
     In addition, automation of processes, like the ones presented in this paper, can lead to a more efficient use of resources.
 
     GANs can also be used to deceive systems.
-    The physical adversarial attack is analyzed by~\cite{zhao2019seeing} where they discuss
+    The physical adversarial attack is analyzed by~\cite{arxiv:1812.10217} where they discuss
     how a system can be used to confuse face recognition in authentication and objection detection in autonomous driving cars.
 
     These systems like this one should be deployed only if the ethical stakeholders accept them.

@@ -14,7 +14,7 @@
     abstract = {Three-dimensional geometric data offer an excellent domain for studying representation learning and generative modeling. In this paper, we look at geometric data represented as point clouds. We introduce a deep AutoEncoder (AE) network with state-of-the-art reconstruction quality and generalization ability. The learned representations outperform existing methods on 3D recognition tasks and enable shape editing via simple algebraic manipulations, such as semantic part editing, shape analogies and shape interpolation, as well as shape completion. We perform a thorough study of different generative models including GANs operating on the raw point clouds, significantly improved GANs trained in the fixed latent space of our AEs, and Gaussian Mixture Models (GMMs). To quantitatively evaluate generative models we introduce measures of sample fidelity and diversity based on matchings between sets of point clouds. Interestingly, our evaluation of generalization, fidelity and diversity reveals that GMMs trained in the latent space of our AEs yield the best results overall.}
 }
 
-@misc{qi2017pointnet,
+@misc{arxiv:1612.00593,
     title = {PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation},
     author = {Charles R. Qi and Hao Su and Kaichun Mo and Leonidas J. Guibas},
     year = {2017},
@@ -23,7 +23,7 @@
     primaryClass = {cs.CV}
 }
 
-@misc{zhao2019seeing,
+@misc{arxiv:1812.10217,
     title = {Seeing isn't Believing: Practical Adversarial Attack Against Object Detectors},
     author = {Yue Zhao and Hong Zhu and Ruigang Liang and Qintao Shen and Shengzhi Zhang and Kai Chen},
     year = {2019},
@@ -32,7 +32,7 @@
     primaryClass = {cs.CV}
 }
 
-@article{Rubner2000,
+@article{doi:10.1023/A:1026543900054,
     abstract = {We investigate the properties of a metric between two distributions, the Earth Mover's Distance (EMD), for content-based image retrieval. The EMD is based on the minimal cost that must be paid to transform one distribution into the other, in a precise sense, and was first proposed for certain vision problems by Peleg, Werman, and Rom. For image retrieval, we combine this idea with a representation scheme for distributions that is based on vector quantization. This combination leads to an image comparison framework that often accounts for perceptual similarity better than other previously proposed methods. The EMD is based on a solution to the transportation problem from linear optimization, for which efficient algorithms are available, and also allows naturally for partial matching. It is more robust than histogram matching techniques, in that it can operate on variable-length representations of the distributions that avoid quantization and other binning problems typical of histograms. When used to compare distributions with the same overall mass, the EMD is a true metric. In this paper we focus on applications to color and texture, and we compare the retrieval performance of the EMD with that of other distances.},
     author = {Rubner, Yossi and Tomasi, Carlo and Guibas, Leonidas J.},
     doi = {10.1023/A:1026543900054},
@@ -40,5 +40,57 @@
     journal = {International Journal of Computer Vision},
     title = {{Earth mover's distance as a metric for image retrieval}},
     year = {2000}
+}
+
+@inbook{doi:10.5555/65669.104451,
+    author = {Rumelhart, David E. and Hinton, Geoffrey E. and Williams, Ronald J.},
+    title = {Learning Representations by Back-Propagating Errors},
+    doi = {10.5555/65669.104451},
+    year = {1988},
+    isbn = {0262010976},
+    publisher = {MIT Press},
+    address = {Cambridge, MA, USA},
+    booktitle = {Neurocomputing: Foundations of Research},
+    pages = {696–699},
+    numpages = {4}
+}
+
+@misc{arxiv:1312.6114,
+    title = {Auto-Encoding Variational Bayes},
+    author = {Diederik P Kingma and Max Welling},
+    year = {2014},
+    eprint = {1312.6114},
+    archivePrefix = {arXiv},
+    primaryClass = {stat.ML}
+}
+
+@inproceedings{NIPS2014_5ca3e9b1,
+    author = {Goodfellow, Ian and Pouget-Abadie, Jean and Mirza, Mehdi and Xu, Bing and Warde-Farley, David and Ozair, Sherjil and Courville, Aaron and Bengio, Yoshua},
+    booktitle = {Advances in Neural Information Processing Systems},
+    editor = {Z. Ghahramani and M. Welling and C. Cortes and N. Lawrence and K. Q. Weinberger},
+    pages = {},
+    publisher = {Curran Associates, Inc.},
+    title = {Generative Adversarial Nets},
+    url = {https://proceedings.neurips.cc/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf},
+    volume = {27},
+    year = {2014}
+}
+
+@misc{arxiv:1511.06434,
+    title = {Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks},
+    author = {Alec Radford and Luke Metz and Soumith Chintala},
+    year = {2016},
+    eprint = {1511.06434},
+    archivePrefix = {arXiv},
+    primaryClass = {cs.LG}
+}
+
+@misc{arxiv:1612.02136,
+    title = {Mode Regularized Generative Adversarial Networks},
+    author = {Tong Che and Yanran Li and Athul Paul Jacob and Yoshua Bengio and Wenjie Li},
+    year = {2017},
+    eprint = {1612.02136},
+    archivePrefix = {arXiv},
+    primaryClass = {cs.LG}
 }
 
