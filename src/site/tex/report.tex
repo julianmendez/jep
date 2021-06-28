@@ -21,6 +21,8 @@
 \usepackage{amsthm}
 \newtheorem{definition}{Definition}
 
+\usepackage{float}
+
 \newcommand{\contentdescription}[1]{}
 
 \newcommand{\TODO}[2]{{#2}}
@@ -84,7 +86,7 @@
         Discuss the published work related to your project paper, the types of experiments you do and the additional method that you have added to this work or you have compared this paper with (if any).
     }
 
-    Some the relevant related work we can mention is described in~\cite{arxiv:1612.00593}.
+    Some of the relevant related work we can mention is described in~\cite{arxiv:1612.00593}.
 
     The architectures used in that paper is based on autoencoders (AEs)\cite{doi:10.5555/65669.104451}\cite{arxiv:1312.6114},
     and generative adversarial networks (GANs)\cite{NIPS2014_5ca3e9b1}\cite{arxiv:1511.06434}\cite{arxiv:1612.02136},
@@ -100,66 +102,89 @@
         It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
     }
 
-    \begin{definition} \normalfont
-    A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
+    \begin{definition}
+        \normalfont
+        A \emph{point cloud} is a set of points $(x, y, z)$ in a Euclidean coordinate frame.
     \end{definition}
 
     In this paper, a point cloud usually represents a surface.
 
-    \begin{definition} \normalfont
-    A \emph{metric} or \emph{distance function} is a function defined
-    $d: X \times X \to \mathbb{R}_{\geq 0}$
-    with the following properties:
+    \begin{definition}
+        \normalfont
+        A \emph{metric} or \emph{distance function} is a function defined
+        $d: X \times X \to \mathbb{R}_{\geq 0}$
+        with the following properties:
 
-    \begin{enumerate}
-        \item $d(x,y) = 0 \Leftrightarrow x = y$
-        \item $d(x,y) = d(y,x)$
-        \item $d(x,y) \leq d(x,z) + d(z,y)$
-    \end{enumerate}
+        \begin{enumerate}
+            \item $d(x,y) = 0 \Leftrightarrow x = y$
+            \item $d(x,y) = d(y,x)$
+            \item $d(x,y) \leq d(x,z) + d(z,y)$
+        \end{enumerate}
 
-    A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0, and the first requirement is replaced by:
-    \[d(x,x) = 0\]
+        A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0, and the first requirement is replaced by:
+        \[d(x,x) = 0\]
     \end{definition}
 
-    \begin{definition} \normalfont
-    The \emph{Chamfer (pseudo)-distance (CD)} is defined as follows:
+    \begin{definition}
+        \normalfont
+        The \emph{Chamfer (pseudo)-distance (CD)} is defined as follows:
 
-    \[d_{CD}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
-    \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}\]
+        \[d_{CD}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
+        \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}\]
     \end{definition}
 
     % The EMD and the CD are used to measure the sampling error of the results.
 
     The CD is used to measure the sampling error of the results.
 
-    \begin{definition} \normalfont
-    The \emph{autoencoder} architecture is a design to reproduce its input, and is composed by an \emph{encoder} (E) and a \emph{decoder} (D).
+    \begin{definition}
+        \normalfont
+        The \emph{autoencoder} architecture is a design to reproduce its input, and is composed by an \emph{encoder} (E) and a \emph{decoder} (D).
 
-    \textbf{[ADD THE AE FIGURE FROM THE PAPER]}
 
-    The encoder takes an input $x$ and produces a compressed version $z$, which is called the \emph{latent representation} of $x$. The decoder tries to reconstruct $x$ by using $z$ as input, and returns $\hat{x}$ as output.
+        \begin{figure}[H]
+            \centering
+            \begin{tabular}{cc}
+                \includegraphics[width = 50mm]{autoencoder}
+            \end{tabular}
+            \caption{Diagram of an autoencoder as described in~\cite{pmlr-v80-achlioptas18a}.}
+        \end{figure}
 
-    The whole pipeline can be represented by:
-    \[x \to E \to z \to D \to \hat{x}\]
+        The encoder takes an input $x$ and produces a compressed version $z$, which is called the \emph{latent representation} of $x$. The decoder tries to reconstruct $x$ by using $z$ as input, and returns $\hat{x}$ as output.
+
+        The whole pipeline can be represented by:
+        \[x \to E \to z \to D \to \hat{x}\]
     \end{definition}
 
     The basic architecture used in this paper is the generative adversarial networks (GANs).
 
-    \begin{definition} \normalfont
-    A \emph{generative adversarial network} (GAN) is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
-    In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones.
+    \begin{definition}
+        \normalfont
+        A \emph{generative adversarial network} (GAN) is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
+        In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones.
 
-    \textbf{[ADD THE GAN FIGURE FROM THE PAPER]}
+        \begin{figure}[H]
+            \centering
+            \begin{tabular}{cc}
+                \includegraphics[width = 50mm]{gan}
+            \end{tabular}
+            \caption{Diagram of a GAN as described in~\cite{pmlr-v80-achlioptas18a}.}
+        \end{figure}
+
+        \textbf{[ADD THE GAN LOSS HEURISTIC EITHER HERE OR IN EXPERIMENTAL SECTION]}
+
     \end{definition}
 
-    \begin{definition} \normalfont
-    Given two sets of point clouds $A$ and $B$, and given a distance, either CD or EMD, we say that \emph{coverage} is a measure for the fraction of the point clouds in $B$ that were matched to point clouds in $A$, such that each point cloud in $A$ is related to its the closest neighbor in $B$ using the given distance.
+    \begin{definition}
+        \normalfont
+        Given two sets of point clouds $A$ and $B$, and given a distance, we say that \emph{coverage} is a measure for the fraction of the point clouds in $B$ that were matched to point clouds in $A$, such that each point cloud in $A$ is related to its the closest neighbor in $B$ using the given distance.
     \end{definition}
 
-    \begin{definition} \normalfont
-    We define the \emph{fidelity} of $A$ with respect to $B$ as the \emph{minimum matching distance} (MMD) of matching each point in $B$ to a point in $A$.
-    The \emph{MMD} is computed as an average of the individual point-wise distances, using either the CD or EMD.
-    They are called the \emph{MMD-CD} and \emph{MMD-EMD} respectively.
+    \begin{definition}
+        \normalfont
+        We define the \emph{fidelity} of $A$ with respect to $B$ as the \emph{minimum matching distance} (MMD) of matching each point in $B$ to a point in $A$.
+        The \emph{MMD} is computed as an average of the individual point-wise distances, using either the CD or EMD.
+        They are called the \emph{MMD-CD} and \emph{MMD-EMD} respectively.
     \end{definition}
 
     Fidelity and coverage are meant to measure the global error of the computation.
@@ -179,6 +204,17 @@
         Describe and present the experiments that you performed and what is the reason for those experiments.
         Where applicable define evaluation metrics that you used. Discuss the results that you got.
     }
+
+    Following the original work \cite{pmlr-v80-achlioptas18a}, we use the ShapeNet dataset~\cite{arxiv:1512.03012} consisting of 16 classes of shapes
+    %(\verb|"Airplane", "Bag", "Cap", "Car", "Chair", "Earphone", "Guitar", "Knife", "Lamp", "Laptop", "Motorbike", "Mug", "Pistol", "Rocket", "Skateboard", "Table"|)
+    that are axis aligned and centered into the unit sphere, and provided as point clouds in the PyTorch Geometric\footnote{https://pytorch-geometric.readthedocs.io/en/latest/} package.
+    We use shapes of one class and uniformly sample 2048 points from each point cloud to train models. We use the default "trainval" set (i.e., training + validation data) for training, and compute the metrics on the test set (i.e., \verb|split="test"|).
+
+    We conduct two types of experiments: with raw GANs (\textit{r-GANs}) and latent GANs (\textit{l-GANs}). In the latter, we use AEs to learn the encoding of the point clouds. The architectures of all models are replicated from the original work (see Appendix in \cite{pmlr-v80-achlioptas18a} and the model summary outputs in the notebooks that we provide in the supplementary material).
+
+    \subsection{r-GAN experiments}
+
+    \subsection{l-GAN experiments}
 
     We can describe our experiments using 3 stages.
 
