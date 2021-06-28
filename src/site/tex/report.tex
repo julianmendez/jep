@@ -185,7 +185,7 @@
     \textbf{Stage 1}
     We trained our encoder (E) as defined in the definition of autoencoder.
     In the bottleneck, $z$ represents the compressed representation.
-    For comparison, in the raw-GAN approach, a point cloud is used instead of a compressed representation.
+    For comparison, in the raw GAN approach, a point cloud is used instead of a compressed representation.
 
     \textbf{Stage 2}
     We sampled using a Gaussian distribution $\mathcal{N}(0,\sigma)$.
@@ -212,13 +212,14 @@
         \begin{tabular}{cc}
             \includegraphics[width = 50mm]{car-lgan}
         \end{tabular}
-        \caption{Car sample generated with l-GAN.}
+        \caption{Car sample generated with $l$-GAN.}
     \end{figure}
 
 
     \begin{figure}
         \centering
         \includegraphics[width = 50mm]{chamfer-loss}
+        \caption{Chamfer loss.}
     \end{figure}
 
 
@@ -299,8 +300,9 @@
     We went the extra mile about the ethical consequences of AI and found how a major companies like Google faces this issue.
     The company explicitly stands against developing AI which principal goals are overall harm, weapons and other tools to injure people, surveillance violating international norms, and contravention of principles in international law and human rights\footnote{\url{https://ai.google/principles/}}.
 
-    We also considered that our application respects the 7 principles, as mentioned for example in~\cite{easa:20210401.01}.
-    They are``Human agency and oversight'', ``Technical robustness and safety'', ``Privacy and data governance'', ``Transparency'', ``Diversity, non-discrimination and fairness'', ``Societal and environmental well-being'', ``Accountability''.
+    We also considered that our application respects the 7 values, as mentioned for example in~\cite{easa:20210401.01}.
+    They are: Human agency and oversight, Technical robustness and safety, Privacy and data governance, Transparency, Diversity, non-discrimination and fairness, Societal and environmental well-being, and Accountability.
+    We also took into account these 3 principles: Accountability, Responsibility, and Transparency (ART)\cite{doi:10.1145/3278721.3278745}.
 
     \begin{ack}
         This work is partially supported by the Wallenberg AI, Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation.
