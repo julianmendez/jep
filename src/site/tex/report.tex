@@ -14,6 +14,10 @@
 
 \usepackage{amsmath}
 
+\usepackage{graphicx}
+
+\graphicspath{ {./images/} }
+
 \usepackage{amsthm}
 \newtheorem{definition}{Definition}
 
@@ -193,6 +197,30 @@
 
     We used examples of a chair, a table, and an airplane.
 
+    \begin{figure}
+        \centering
+        \begin{tabular}{cc}
+            \includegraphics[width = 50mm]{car-shapenet-1} &
+            \includegraphics[width = 50mm]{car-shapenet-2} \\
+        \end{tabular}
+        \caption{Two car samples generated with ShapeNet.}
+    \end{figure}
+
+
+    \begin{figure}
+        \centering
+        \begin{tabular}{cc}
+            \includegraphics[width = 50mm]{car-lgan}
+        \end{tabular}
+        \caption{Car sample generated with l-GAN.}
+    \end{figure}
+
+
+    \begin{figure}
+        \centering
+        \includegraphics[width = 50mm]{chamfer-loss}
+    \end{figure}
+
 
     \section{Challenges and Conclusions}
     \contentdescription{
@@ -267,6 +295,10 @@
 
     These systems like this one should be deployed only if the ethical stakeholders accept them.
     Especially, for a specific task, the first questions is: ``Should be use an AI system for that?''.
+
+    We went the extra mile about the ethical consequences of AI and found how a major companies like Google\footnote{\url{https://ai.google/principles/}} faces this issue.
+    The company explicitly stands state against use of AI in overall harm, weapons and other tools to kill or injure people, surveillance violating international norms, and contravention of principles in international law and human rights.
+
 
 
     \begin{ack}
