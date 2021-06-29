@@ -75,7 +75,7 @@
     An intuitive approach for representing 3D data is \emph{point cloud}, which is a set of 3D locations in a Euclidean frame.
     When considering neural network (NN) architectures for processing point clouds, one faces a unique set of challenges. Namely, the requirement of \textit{permutation invariance}, which we define in Section~\ref{methods}.
     In this context, generating point clouds is a particularly interesting task.
-    Therefore, in our work, we use PyTorch and implement two approaches to generate 3D synthetic shapes exploiting generative adversarial networks (GANs) and and autoencoders (AEs), as proposed in~\cite{pmlr-v80-achlioptas18a}. Following the original work, we utilize the ShapeNet data for training the models. We present both qualitative and quantitative assessment of the results, as well as analysis of failure cases.
+    Therefore, in our work, we use PyTorch and implement two approaches to generate 3D synthetic shapes exploiting generative adversarial networks (GANs) and autoencoders (AEs), as proposed in~\cite{pmlr-v80-achlioptas18a}. Following the original work, we utilize the ShapeNet data for training the models. We present both qualitative and quantitative assessment of the results, as well as analysis of failure cases.
 
 
     \section{Related work}
@@ -109,6 +109,7 @@
     \begin{definition}
         \normalfont
         A \emph{point cloud} is a set of 3D locations defined by their $(x, y, z)$ coordinates in a Euclidean coordinate frame \cite{pmlr-v80-achlioptas18a}. Therefore, a point cloud can be represented as an $N \times 3$ matrix, where N is the number of points.
+        \label{definition:point_cloud}
     \end{definition}
 
     In this paper, a point cloud usually represents a 3D shape surface.
@@ -123,17 +124,14 @@
             \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} + \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}
             \label{equation:chamfer_distance}
         \end{equation}
-
+        \label{definition:chamfer_distance}
     \end{definition}
 
-    % The EMD and the CD are used to measure the sampling error of the results.
-
-    In this work, the application of CD is two-fold. First, CD defines a reconstruction loss to train autoencoders presented in definition 4. Second, following the original paper, we implement high level metrics in definition 7 and 8, namely fidelity and coverage, in terms of CD.
+    In this work, the application of CD is two-fold. First, CD defines a reconstruction loss to train autoencoders presented in Definition~\ref{definition:GAN}. Second, following the original paper, we implement high level metrics in Definition~\ref{definition:coverage} and Definition~\ref{definition:fidelity}, namely coverage and fidelity, in terms of CD.
 
     \begin{definition}
         \normalfont
         The \emph{autoencoder} architecture is a design to reconstruct its input, and is composed by an \emph{encoder} (E) and a \emph{decoder} (D). The pipeline is represented in Figure~\ref{figure:diagram_of_autoencoder}.
-        % \[x \to E \to z \to D \to \hat{x}\]
 
         \begin{figure}[H]
             \centering
@@ -145,6 +143,7 @@
         \end{figure}
 
         The encoder takes an input $x$ and produces a compressed version $z$, which is called the \emph{latent representation} of $x$. The decoder tries to reconstruct $x$ by using $z$ as input, and returns $\hat{x}$ as output.
+        \label{definition:autoencoder}
     \end{definition}
 
     The basic architecture used in this paper is the generative adversarial networks (GANs).
@@ -152,7 +151,7 @@
     \begin{definition}
         \normalfont
         A \emph{generative adversarial network} (GAN) \cite{NIPS2014_5ca3e9b1} is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
-        In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones. This adversarial process is illustrated in Figure~\ref{figure:diagram_of_gan}. During training, we alternate the optimization of the losses presented in \eqref{equation:disc_loss} and \eqref{equation:gen_loss} for discriminator and generator, respectively.
+        In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones. This adversarial process is illustrated in Figure~\ref{figure:diagram_of_gan}. During training, we alternate the optimization of   \eqref{equation:dis_loss} and \eqref{equation:gen_loss} losses for discriminator and generator, respectively.
 
         \begin{figure}[H]
             \centering
@@ -164,15 +163,16 @@
         \end{figure}
 
         \begin{equation}
-            \mathcal{L}_{dis} = \mathop{\mathbb{E}}_{x \sim p_x(x)}[log D(x)] + \mathop{\mathbb{E}}_{z \sim p_z(z)}[log (1 - D(G(z))]
+            \mathcal{L}_{dis} = -\left\{ \mathop{\mathbb{E}}_{x \sim p_x(x)}[\log D(x)]\,+ \mathop{\mathbb{E}}_{z \sim p_z(z)}[\log (1 - D(G(z))]\right\}
             \label{equation:dis_loss}
         \end{equation}
 
         \begin{equation}
-            \mathcal{L}_{gen} = \mathop{\mathbb{E}}_{z \sim p_z(z)}[log D(G(z))]
+            \mathcal{L}_{gen} = -\left\{\mathop{\mathbb{E}}_{z \sim p_z(z)}[\log D(G(z))]\right\}
             \label{equation:gen_loss}
         \end{equation}
 
+        \label{definition:GAN}
     \end{definition}
 
     \begin{definition}
@@ -180,13 +180,14 @@
         \textit{Permutation invariance} of a point cloud implies that any reordering of the points yields a point cloud that represents the same shape. This complicates comparisons between two point sets which is needed to define a reconstruction loss, as noted in~\cite{pmlr-v80-achlioptas18a} and requires a permutation invariant learning of encoded features.
 
         We say that a model (e.g., a neural network classifier) is \emph{permutation invariant} when it does not assume any spatial relationships between the features in the input. E.g., if one permutes the points in the input point set and the performance of the model remains the same, then the model is permutation invariant.
-        The generative models considered in this work are permutation invariant by construction since they contain 1-D convolutional layers with kernel size 1, allowing encoding the points \textit{independently}, and a symmetric (permutation invariant) max-pooling operation over the feature dimension.
-        % ...
+        The generative models considered in this work are permutation invariant by construction since they contain 1-D convolutional layers with kernel size 1, thus encoding the points \textit{independently}, and a symmetric (permutation invariant) max-pooling operation over the feature dimension.
+        \label{definition:invariance}
     \end{definition}
 
     \begin{definition}
         \normalfont
         Given two sets of point clouds $A$ and $B$, and given a distance, we say that \emph{coverage} is a measure for the fraction of the point clouds in $B$ that were matched to point clouds in $A$, such that each point cloud in $A$ is related to its the closest neighbor in $B$ using the given distance.
+        \label{definition:coverage}
     \end{definition}
 
     \begin{definition}
@@ -194,12 +195,10 @@
         We define the \emph{fidelity} of $A$ with respect to $B$ as the \emph{minimum matching distance} (MMD) of matching each point in $B$ to a point in $A$.
         The \emph{MMD} is computed as an average of the individual point-wise distances, using either the CD or EMD.
         They are called the \emph{MMD-CD} and \emph{MMD-EMD} respectively.
+        \label{definition:fidelity}
     \end{definition}
 
     Importantly, fidelity and coverage are meant to measure the global error of the computation and serve as a tool for quantitative assessment of the generated samples.
-
-    % Let us see an intuitive example behind fidelity and the MMD.
-    % If we sample chairs, we can look at the closest matching chair from the generated ones for a given metric.
 
 
     \section{Data, experiments and findings}
@@ -220,22 +219,16 @@
     \subsection{l-GAN experiments} Instead of utilizing the raw data, the l-GAN takes as input a compressed representation of the original shape, which is obtained by passing the data through the encoder part of a pre-trained AE.
 
     We perform our l-GAN experiments in two steps:
-    (1) For a given shape category, we train an autoencoder by minimizing the CD loss (Eq. ~\eqref{equation:chamfer_distance}) between the input and reconstructed point clouds. The output of the encoder, the bottleneck $z$, represents the compressed representation, i.e., \textit{encoding}.
-    (2) Similarly to the r-GAN case, we sample a random vector of length $128$ from $\mathcal{N}(\mu=0,\sigma=0.2)$, but now we generate an \textit{encoding} representation of a point cloud (128-long vector) instead of a complete point cloud.
+    1) For a given shape category, we train an autoencoder by minimizing the CD loss~\eqref{equation:chamfer_distance} between the input and reconstructed point clouds. The output of the encoder, the bottleneck $z$, represents the compressed representation, i.e., \textit{encoding}.
+    2) Similarly to the r-GAN case, we sample a random vector of length $128$ from $\mathcal{N}(\mu=0,\sigma=0.2)$, but we generate an \textit{encoding} representation of a point cloud (128-long vector) instead of a complete point cloud.
 
     We train each AE for 500 epochs, but perform only 200 epochs to optimize the parameters of the l-GANs, consistently with our choice for training the r-GANs.
 
-    Original and AE-reconstructed samples are presented in Figure~\ref{figure:samples_generated_with_autoencoders}. Samples generated by l-GANs are shown in Figure~\ref{figure:samples_generated_with_latent_gan}. Illustrative failure cases are presented in Figure~\ref{figure:bad_samples_generated_with_latent_gan}. We present quantitative results in Table~\ref{table:results}.
-
-    % \textbf{Stage 3}  This is used to sample and create using GANs
-    % $C' = \sigma(z)$
-    % $P = D(C')$
-
-    % We used examples of a chair, a table, and an airplane.
-    % Figure~\ref{figure:car_sampled_with_lGAN} show an example of a car sample generated with l-GAN.
+    Original and AE-reconstructed samples are presented in Figure~\ref{figure:samples_generated_with_autoencoders}. Samples generated by l-GANs are shown in Figure~\ref{figure:samples_generated_with_latent_gan}. Illustrative failure cases are presented in Figure~\ref{figure:bad_samples_generated_with_latent_gan}. We present quantitative results in Table~\ref{table:results}. A better fidelity is indicated with a lower score, whereas a better coverage is denoted by a higher score.
 
     \begin{table}[H]
         \centering
+        \caption{Fidelity (MMD) and coverage comparison between r-GAN and l-GAN model on the test split of each class. }
         \begin{tabular}{lll}
             \toprule
             Model       & Fidelity $\downarrow$ & Coverage $\uparrow$ \\
@@ -248,23 +241,18 @@
             \midrule
             r-GAN Table & 0.023                 & 22.05               \\
             l-GAN Table & 0.002                 & 34.91               \\
-            \midrule
-            % r-GAN Airplane & 0.001                 & 12.02               \\
-            % l-GAN Airplane & 0.0007                & 27.27               \\
-            % \bottomrule
+            \bottomrule
         \end{tabular}
-        \caption{Fidelity and coverage comparison between r-GAN and l-GAN
-        model on the test split of each class. A lower score is better for fidelity, whereas a higher score is better for coverage.}
-
         \label{table:results}
     \end{table}
 
     \subsection{Results}
 
-    As can be seen in Figure~\ref{figure:samples_generated_with_raw_gan}, the quality of the resulting r-GAN generated samples of \verb|Chair| is reasonably good, considering the 10-fold shorter optimization we performed compared to the baseline. However, the r-GAN of \verb|Lamp| fails to generate reasonable samples. This is well reflected in Figure~\ref{figure:curves_for_latent_gan_and_raw_gan}. On one hand, the \verb|Chair| r-GAN converges nicely to an equilibrium (see Figure~\ref{figure:curves_for_latent_gan_and_raw_gan} (c)). In contrast, \verb|Lamp| r-GAN fails to converge (see Figure~\ref{figure:curves_for_latent_gan_and_raw_gan} (d)). A possible cause of this phenomenon is the amount of training data: we observe a strong correlation between the number of training samples (see Table \ref{table:statistics}) and the quality of shapes generated.
+    As shown in Figure~\ref{figure:samples_generated_with_raw_gan}, the quality of the resulting r-GAN generated samples of \verb|Chair| is reasonably good, considering the 10-fold shorter optimization we performed compared to the baseline. Remarkably, the \verb|Lamp| r-GAN fails to generate reasonable samples. This is well reflected in Figure~\ref{figure:curves_for_latent_gan_and_raw_gan}. On the one hand, the \verb|Chair| r-GAN converges nicely to an equilibrium (see Figure~\ref{figure:curves_for_latent_gan_and_raw_gan} (c)). On the other hand, \verb|Lamp| r-GAN fails to reach convergence (see Figure~\ref{figure:curves_for_latent_gan_and_raw_gan} (d)). A possible cause of this phenomenon is the amount of training data: we observe a strong correlation between the number of training samples (see Table \ref{table:statistics}) and the quality of shapes generated.
 
     \begin{table}[H]
         \centering
+        \caption{Number of samples in the training data.}
         \begin{tabular}{ll}
             \toprule
             Object       & Number \\
@@ -274,7 +262,6 @@
             \verb|Chair| & 3054   \\
             \bottomrule
         \end{tabular}
-        \caption{Number of samples in the training data.}
         \label{table:statistics}
     \end{table}
 
@@ -289,9 +276,11 @@
         \label{figure:samples_generated_with_raw_gan}
     \end{figure}
 
-    Figure~\ref{figure:samples_generated_with_latent_gan} illustrates the effectiveness of l-GAN. With enough training data, l-GAN is able to generate sharp and diverse samples, following different styles for \verb|Chair| and \verb|Table|. Additionally, in the low-data regime, \verb|Lamp| l-GAN shows lower diversity, an issue commonly known as \textit{mode collapse} in the literature. Despite the strong performance of l-GAN, we observe that it can sometimes generate noisy or ill-defined shapes, as observed in Figure~\ref{figure:bad_samples_generated_with_latent_gan}.
+    Figure~\ref{figure:samples_generated_with_latent_gan} illustrates the effectiveness of the l-GAN approach. With enough training data, the l-GAN is able to generate sharp and diverse samples, following different styles for \verb|Chair| and \verb|Table|. In terms of sample fidelity, the MMD scores are significantly higher (up to ten-fold) for the r-GAN compared to the l-GAN, which correlates with consistently better quality of samples in the latter case. Moreover, the l-GAN presents a stronger performance in terms of coverage, which, in general terms, corresponds to rich class diversity, especially for the \verb|Table| and \verb|Chair| categories.
 
-    Instrumental to l-GAN approach is the low-dimensional bottleneck representation from AE. In Figure~\ref{figure:samples_generated_with_latent_gan}, we observe that AE can reconstruct complex shapes with high level of detail.
+    Interestingly, in a low-data regime as in the case of the \verb|Lamp| category, the l-GAN shows limited diversity, an issue commonly known as \textit{mode collapse} in the literature. Furthermore, despite of the good performance of the l-GAN method, we observe that it can sometimes generate noisy or ill-defined shapes, as showcased in Figure~\ref{figure:bad_samples_generated_with_latent_gan}.
+
+    The aforementioned results indicate that the AE bottleneck representation has been instrumental in point cloud generation. From Figure~\ref{figure:samples_generated_with_latent_gan}, we can observe that the AE can accurately reconstruct shapes without a significant loss of details. This supports the idea that this intermediate (compressed) representation maintains most of the relevant features in a low-dimensional manifold.
 
     \begin{figure}
         \centering
@@ -338,7 +327,6 @@
         \label{figure:bad_samples_generated_with_latent_gan}
     \end{figure}
 
-
     \begin{figure}
         \centering
         \begin{tabular}{lllllll}
@@ -359,7 +347,7 @@
         Challenges you faced when reimplementing the paper and conducting the experiments.
         Were all details in the paper?
         Or did you have to look in the authors code or even contact them to find about some details?
-        Was parts of the code quite hard to get them to work as intended?
+        Were parts of the code quite hard to get them to work as intended?
         Did you have optimize and tune several hyperparameters?
         Which ones?
         Did the framework you used make the implementation difficult in some ways?
@@ -369,12 +357,15 @@
         Suggest ideas for future extensions or new applications of your ideas.
     }
 
-    We are able to successfully reproduce the results in~\cite{pmlr-v80-achlioptas18a}.
+    We were able to successfully reproduce the results in~\cite{pmlr-v80-achlioptas18a}.
 
-    Utilizing the latent space GANs (l-GANs), we can achieve better reconstructions, as discussed in the original work.
-    By contrast, the raw GAN performance is considerably lower when not enough data is provided.
+    Utilizing the l-GANs, we were able to achieve better reconstructions, as discussed in the original work.
+    By contrast, when not enough data were provided, the r-GAN performance was considerably lower. That is the case of the lamp data which was insufficient to train the r-GAN model reasonably well.
+    We also noticed flaws in the l-GAN approach which can sometimes generate noisy shapes.
 
-    For example, in some of our experiments we found that the lamp data were insufficient to train the raw GAN reasonably well.
+    Fidelity (MMD) and coverage showed to be conducive measures to obtain better results, as shown in Table~\ref{table:results}.
+
+    We consider that the optimizations we performed were right and let us get good results with more efficient use of computational resources.
 
 
     \section{Ethical consideration, societal impact, potential alignment with UN SDGs}
@@ -388,52 +379,23 @@
         How do you think this paper can push the UN SDG targets?
     }
 
-    The Sustainable Development Goals (SDGs), were adopted by the United Nations in 2015 as a universal call
-    to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}, intended to be achieved by the year 2030.
-    % For the sake of completeness, we mention the goals:
-    % \begin{enumerate}
-    %    \item No Poverty,
-    %    \item Zero Hunger,
-    %    \item Good Health and Well-being,
-    %    \item Quality Education,
-    %    \item Gender Equality,
-    %    \item Clean Water and Sanitation,
-    %    \item Affordable and Clean Energy,
-    %    \item Decent Work and Economic Growth,
-    %    \item Industry, Innovation and Infrastructure,
-    %    \item Reducing Inequality,
-    %    \item Sustainable Cities and Communities,
-    %    \item Responsible Consumption and Production,
-    %    \item Climate Action,
-    %    \item Life Below Water,
-    %    \item Life On Land,
-    %    \item Peace, Justice, and Strong Institutions,
-    %    \item Partnerships for the Goals.
-    %\end{enumerate}
+    The Sustainable Development Goals (SDGs) were adopted by the United Nations in 2015 as a universal call
+    to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}. They are intended to be achieved by the year 2030.
 
-    Use of GANs can impact indirectly in all of the goals.
-    However, we have chosen three items, which we consider the most directly affected:
-    \textbf{Decent Work and Economic Growth}, \textbf{Industry, Innovation and Infrastructure}, and
-    \textbf{Sustainable Cities and Communities}.
+    The use of GANs can impact indirectly in all of the goals, but we have chosen three items, which we consider the most directly affected:
+    ``\textbf{Decent Work and Economic Growth}'', ``\textbf{Industry, Innovation and Infrastructure}'', and
+    ``\textbf{Sustainable Cities and Communities}''.
 
-    We base our position on the fact ethical uses of machine learning can have a positive impact in societal development.
+    We base our position on the fact that ethical uses of machine learning can have a positive impact in societal development.
     Technology can leave humans in overseeing positions, avoiding dangerous or repetitive tasks.
     In addition, automation of processes, like the ones presented in this paper, can lead to a more efficient use of resources.
 
     GANs can also be used to deceive systems.
-    The physical adversarial attack is analyzed by~\cite{arxiv:1812.10217} where they discuss
+    The physical adversarial attack is analyzed in~\cite{arxiv:1812.10217} where the authors discuss
     how a system can be used to confuse face recognition in authentication and objection detection in autonomous driving cars.
 
-    Such systems should be deployed only if the ethical stakeholders accept them.
-
-    Especially, for a specific task, the first questions is: ``Should be use an AI system for that?''.
-
-    We went the extra mile about the ethical consequences of AI and found how a major company like Google faces this issue.
-    The company explicitly stands against developing AI which principal goals are overall harm, weapons or tools to injure people, surveillance violating international norms, and contravention of principles in international law and human rights\footnote{\url{https://ai.google/principles/}}.
-
-    We also considered that our application respects the 7 values, as mentioned for example in~\cite{easa:20210401.01}.
-    They are: Human agency and oversight, Technical robustness and safety, Privacy and data governance, Transparency, Diversity, non-discrimination and fairness, Societal and environmental well-being, and Accountability.
-    We also took into account these 3 principles: Accountability, Responsibility, and Transparency (ART)\cite{doi:10.1145/3278721.3278745}.
+    We went the extra mile about ethical requirements for AI and found how a major company like Google faces this issue.
+    The company explicitly stands against developing or deploying AI systems in the areas of technologies that cause overall harm, weapons or tools to injure people, surveillance violating international norms, and contravention of principles in international law and human rights\footnote{\url{https://ai.google/principles/}}.
 
     \begin{ack}
         This work is partially supported by the Wallenberg AI, Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation.
