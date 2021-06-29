@@ -127,7 +127,7 @@
         \label{definition:chamfer_distance}
     \end{definition}
 
-    In this work, the application of CD is two-fold. First, CD defines a reconstruction loss to train autoencoders presented in Definition~\ref{definition:GAN}. Second, following the original paper, we implement high level metrics in Definition~\ref{definition:coverage} and Definition~\ref{definition:fidelity}, namely coverage and fidelity, in terms of CD.
+    In this work, the application of CD is two-fold. First, CD defines a reconstruction loss to train autoencoders presented in Definition~\ref{definition:gan}. Second, following the original paper, we implement high level metrics in Definition~\ref{definition:coverage} and Definition~\ref{definition:fidelity}, namely coverage and fidelity, in terms of CD.
 
     \begin{definition}
         \normalfont
@@ -172,7 +172,7 @@
             \label{equation:gen_loss}
         \end{equation}
 
-        \label{definition:GAN}
+        \label{definition:gan}
     \end{definition}
 
     \begin{definition}
@@ -219,8 +219,8 @@
     \subsection{l-GAN experiments} Instead of utilizing the raw data, the l-GAN takes as input a compressed representation of the original shape, which is obtained by passing the data through the encoder part of a pre-trained AE.
 
     We perform our l-GAN experiments in two steps:
-    1) For a given shape category, we train an autoencoder by minimizing the CD loss~\eqref{equation:chamfer_distance} between the input and reconstructed point clouds. The output of the encoder, the bottleneck $z$, represents the compressed representation, i.e., \textit{encoding}.
-    2) Similarly to the r-GAN case, we sample a random vector of length $128$ from $\mathcal{N}(\mu=0,\sigma=0.2)$, but we generate an \textit{encoding} representation of a point cloud (128-long vector) instead of a complete point cloud.
+    1)~For a given shape category, we train an autoencoder by minimizing the CD loss~\eqref{equation:chamfer_distance} between the input and reconstructed point clouds. The output of the encoder, the bottleneck $z$, represents the compressed representation, i.e., \textit{encoding}.
+    2)~Similarly to the r-GAN case, we sample a random vector of length $128$ from $\mathcal{N}(\mu=0,\sigma=0.2)$, but we generate an \textit{encoding} representation of a point cloud (128-long vector) instead of a complete point cloud.
 
     We train each AE for 500 epochs, but perform only 200 epochs to optimize the parameters of the l-GANs, consistently with our choice for training the r-GANs.
 
@@ -276,11 +276,11 @@
         \label{figure:samples_generated_with_raw_gan}
     \end{figure}
 
-    Figure~\ref{figure:samples_generated_with_latent_gan} illustrates the effectiveness of the l-GAN approach. With enough training data, the l-GAN is able to generate sharp and diverse samples, following different styles for \verb|Chair| and \verb|Table|. In terms of sample fidelity, the MMD scores are significantly higher (up to ten-fold) for the r-GAN compared to the l-GAN, which correlates with consistently better quality of samples in the latter case. Moreover, the l-GAN presents a stronger performance in terms of coverage, which, in general terms, corresponds to rich class diversity, especially for the \verb|Table| and \verb|Chair| categories.
+    Figure~\ref{figure:samples_generated_with_latent_gan} illustrates the effectiveness of the l-GAN approach. Even in the case of the \verb|Lamp| data, the l-GAN is able to generate sharp and diverse samples, following different styles. The same applies for \verb|Chair| and \verb|Table|. In terms of sample fidelity, the MMD scores are significantly higher (up to ten-fold) for the r-GAN compared to the l-GAN, which correlates with consistently better quality of samples in the latter case. Moreover, the l-GAN presents a stronger performance in terms of coverage, which, in general terms, corresponds to rich class diversity, especially for the \verb|Table| and \verb|Chair| categories.
 
     Interestingly, in a low-data regime as in the case of the \verb|Lamp| category, the l-GAN shows limited diversity, an issue commonly known as \textit{mode collapse} in the literature. Furthermore, despite of the good performance of the l-GAN method, we observe that it can sometimes generate noisy or ill-defined shapes, as showcased in Figure~\ref{figure:bad_samples_generated_with_latent_gan}.
 
-    The aforementioned results indicate that the AE bottleneck representation has been instrumental in point cloud generation. From Figure~\ref{figure:samples_generated_with_latent_gan}, we can observe that the AE can accurately reconstruct shapes without a significant loss of details. This supports the idea that this intermediate (compressed) representation maintains most of the relevant features in a low-dimensional manifold.
+    The aforementioned results indicate that the AE bottleneck representation has been instrumental in point cloud generation. We observe that AE can accurately reconstruct shapes without a significant loss of details, as shown in Figure~\ref{figure:samples_generated_with_latent_gan}. Note that the CD loss converges smoothly as training progresses (Figure \ref{figure:curves_for_latent_gan_and_raw_gan} (a) and (b)). These findings support the idea that a good intermediate (compressed) representation can preserve most relevant features in a low-dimensional manifold.
 
     \begin{figure}
         \centering
@@ -335,7 +335,7 @@
             \includegraphics[width = 30mm]{chair_raw_gan_curves} &
             \includegraphics[width = 30mm]{lamp_raw_gan_curves} \\
         \end{tabular}
-        \caption{Training loss as a function of training epochs. From left to right, (a) Chamfer loss for AE trained on Chair data, (b) Chamfer loss for AE trained on Table data, (c) GAN losses for r-GAN trained on Chair data, (d) GAN losses for l-GAN trained on Lamp data.}
+        \caption{Training loss as a function of training epochs. From left to right, (a) Chamfer loss for the AE trained on the Chair data, (b) Chamfer loss for the AE trained on the Table data, (c) GAN losses for the r-GAN trained on the Chair data, (d) GAN losses for the l-GAN trained on the Lamp data.}
         \label{figure:curves_for_latent_gan_and_raw_gan}
     \end{figure}
 
@@ -356,16 +356,15 @@
         What points do you think one should consider when using the approach of the paper you chose for your project?
         Suggest ideas for future extensions or new applications of your ideas.
     }
+    We were able to successfully reproduce some of the results in~\cite{pmlr-v80-achlioptas18a}.
+    For the sake of computational efficiency, we shortened the optimization of both r- and l-GANs to 200 epochs. However, judging by qualitative and quantitative results, we conclude that it was enough to achieve competent results.
 
-    We were able to successfully reproduce the results in~\cite{pmlr-v80-achlioptas18a}.
+    Utilizing the l-GAN approach, we were able to generate point clouds of a higher quality compared to the r-GAN, which goes along well with the discussion in the original work.
+    Nonetheless, we also noticed limitation of the l-GAN method, as it can sometimes generate noisy shapes.
 
-    Utilizing the l-GANs, we were able to achieve better reconstructions, as discussed in the original work.
-    By contrast, when not enough data were provided, the r-GAN performance was considerably lower. That is the case of the lamp data which was insufficient to train the r-GAN model reasonably well.
-    We also noticed flaws in the l-GAN approach which can sometimes generate noisy shapes.
+    When not enough data were provided, the r-GAN performance was considerably lower. That is the case of the \verb|Lamp| data, which were insufficient to train the model reasonably well.
 
-    Fidelity (MMD) and coverage showed to be conducive measures to obtain better results, as shown in Table~\ref{table:results}.
-
-    We consider that the optimizations we performed were right and let us get good results with more efficient use of computational resources.
+    The fidelity (MMD) and coverage metrics showed to be conducive measures to quantitatively assess the results, as shown in Table~\ref{table:results}. Furthermore, the obtained scores, in general, corresponded well to the qualitative outcome of the experiments.
 
 
     \section{Ethical consideration, societal impact, potential alignment with UN SDGs}
@@ -379,8 +378,7 @@
         How do you think this paper can push the UN SDG targets?
     }
 
-    The Sustainable Development Goals (SDGs) were adopted by the United Nations in 2015 as a universal call
-    to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}. They are intended to be achieved by the year 2030.
+    The Sustainable Development Goals (SDGs) were adopted by the United Nations in 2015 as a universal call to end poverty and protect the planet\footnote{\url{https://sdgs.un.org/goals}}. They are intended to be achieved by 2030.
 
     The use of GANs can impact indirectly in all of the goals, but we have chosen three items, which we consider the most directly affected:
     ``\textbf{Decent Work and Economic Growth}'', ``\textbf{Industry, Innovation and Infrastructure}'', and
@@ -391,8 +389,7 @@
     In addition, automation of processes, like the ones presented in this paper, can lead to a more efficient use of resources.
 
     GANs can also be used to deceive systems.
-    The physical adversarial attack is analyzed in~\cite{arxiv:1812.10217} where the authors discuss
-    how a system can be used to confuse face recognition in authentication and objection detection in autonomous driving cars.
+    The physical adversarial attack is analyzed in~\cite{arxiv:1812.10217} where the authors discuss how a system can be used to confuse face recognition in authentication and objection detection in autonomous driving cars.
 
     We went the extra mile about ethical requirements for AI and found how a major company like Google faces this issue.
     The company explicitly stands against developing or deploying AI systems in the areas of technologies that cause overall harm, weapons or tools to injure people, surveillance violating international norms, and contravention of principles in international law and human rights\footnote{\url{https://ai.google/principles/}}.
@@ -406,4 +403,3 @@
     \bibliography{bibliography}
 
 \end{document}
-
