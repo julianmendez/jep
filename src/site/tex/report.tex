@@ -27,17 +27,20 @@
 
 \newcommand{\TODO}[2]{{#2}}
 
-\title{Report}
+\title{Generating 3D Point Cloud Data with Generative Adversarial Networks and Autoencoders}
 
 \author{
-    Pavlo Melnyk \\
+    Pavlo Melnyk$^*$ \\
     \texttt{pavlo.melnyk@liu.se} \\
     \And
-    Julian Alfredo Mendez \\
+    Julian Alfredo Mendez$^\star $ \\
     \texttt{julian.mendez@umu.se} \\
     \And
-    Emanuel S\'{a}nchez Aimar \\
+    Emanuel S\'{a}nchez Aimar$^*$ \\
     \texttt{emanuel.sanchez.aimar@liu.se} \\
+    \\
+    {\small $^*$Computer Vision Laboratory, Department of Electrical Engineering, Linköping University} \\
+    {\small $^\star$ Department of Computing Science, Umeå University}
 }
 
 \begin{document}
@@ -51,15 +54,10 @@
             Should be no more than 300 words.
         }
 
-        Recognition and representation of 3D data is a challenging and fruitful topic which has fast developed in recent years.
-        For this report,  we analyzed the studies considered in~\cite{pmlr-v80-achlioptas18a}, and re-implemented their approach using PyTorch\footnote{\url{https://pytorch.org}}.
-
-        They introduce a deep AutoEncoder (AE) network that has, in their own words, ``state-of-the-art reconstruction quality and generalization ability''.
-        Their representations can outperform methods on 3D recognition tasks and let editing using algebraic manipulations.
-        They perform studies of GANs operating on the raw point clouds, and GANs trained with AEs
-        They also share the source code of their executions\footnote{\url{https://github.com/optas/latent_3d_points}}.
-
-        In our analysis, we reproduce their approaches on raw GANs, autoencoders, and l-GANs, using the Chamfer pseudo-distance.
+        Recognition and representation of 3D geometric data is a challenging and fruitful topic that has fast developed in recent years. An intuitive way to represent such type of data is as a set of 3D locations in a Euclidean coordinate frame, i.e., as a \textit{point cloud}. However, as for other types of data, generating 3D point clouds possess a unique set of challenges, which inspired us consider this task.
+        In this report,  we analyze and implement the raw and latent generative adversarial network (r- and l-GAN, respectively) methods proposed in the original work~\cite{pmlr-v80-achlioptas18a} to generate point clouds of 3D shapes of different categories using the ShapeNet data. The main feature of the latter is the use of a deep autoencoder (AE) network that is trained by minimizing the Chamfer pseudo-distance and has ``state-of-the-art reconstruction quality and generalization ability''.
+        Importantly, apart from (subjective) qualitative assessment of the generated geometric data, we perform quantitative evaluation of the generative models by using the introduced measures of sample fidelity (i.e., \textit{minimum matching distance}) and diversity (i.e., \textit{coverage}) based on matchings between sets of point clouds.
+        The original work implementation\footnote{\url{https://github.com/optas/latent_3d_points}} is in TensorFlow, whereas we use PyTorch\footnote{\url{https://pytorch.org}} to build the models and conduct experiments.
     \end{abstract}
 
 
@@ -79,7 +77,7 @@
 
     We applied three approaches: raw GAN, autoencoder, and l-GAN, which are defined in the subsequent sections.
 
-    This report is about a reimplementation of~\cite{pmlr-v80-achlioptas18a} using PyTorch.
+    This report presents analysis and the results of a reimplementation~\cite{pmlr-v80-achlioptas18a} using PyTorch.
 
 
     \section{Related work}
@@ -88,7 +86,12 @@
         Discuss the published work related to your project paper, the types of experiments you do and the additional method that you have added to this work or you have compared this paper with (if any).
     }
 
-    Some of the relevant related work we can mention is described in~\cite{arxiv:1612.00593}.
+
+    Some of the deep architectures for 3D point clouds in the literature focus in classification and segmentation.
+    That is the case with PointNet~\cite{arxiv:1612.00593},
+    which is ``a unified architecture for applications ranging from object classification, part segmentation, to scene semantic parsing''.
+    It is a novel type of neural networks that takes point clouds as input and respects the permutation invariance of points for that input.
+
     Their architecture is based on autoencoders (AEs)\cite{doi:10.5555/65669.104451}\cite{arxiv:1312.6114},
     and generative adversarial networks (GANs)\cite{NIPS2014_5ca3e9b1}\cite{arxiv:1511.06434}\cite{arxiv:1612.02136}.
     These techniques were used to generate samples from complex underlying distributions.
@@ -102,6 +105,8 @@
         Here, you also try to justify any methodical modification or incremental changes that you have added to the original paper.
         It may be helpful to include figures, diagrams, or tables to describe your method or compare it with other methods.
     }
+
+    To facilitate the reader's understanding of the original work, as well as the content of Sections~\ref{sec:data_experiments_findings}~and~\ref{sec:conclusions} of our report, we describe the main concepts in the form of definitions below.
 
     \begin{definition}
         \normalfont
@@ -122,13 +127,13 @@
             \item $d(x,y) \leq d(x,z) + d(z,y)$
         \end{enumerate}
 
-        A \emph{pseudo-distance} is like a distance, but it allows different points to have distance 0, and the first requirement is replaced by:
+        A \emph{pseudo-distance} has similar properties, but it allows different points to have distance 0, and the first requirement is replaced by:
         \[d(x,x) = 0\]
     \end{definition}
 
     \begin{definition}
         \normalfont
-        The \emph{Chamfer (pseudo)-distance (CD)} is defined as follows:
+        The \emph{Chamfer (pseudo)-distance (CD)} between point clouds $S_1$ and $S_2$ is defined as follows:
 
         \[d_{CD}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
         \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}\]
@@ -136,13 +141,11 @@
 
     % The EMD and the CD are used to measure the sampling error of the results.
 
-    The CD is used to measure the sampling error of the results.
+    In this work, the application of CD is two-fold. First, CD defines a reconstruction loss to train autoencoders presented in definition 4. Second, following the original paper, we implement high level metrics in definition 7 and 8, namely fidelity and coverage, in terms of CD.
 
     \begin{definition}
         \normalfont
-        The \emph{autoencoder} architecture is a design to reproduce its input, and is composed by an \emph{encoder} (E) and a \emph{decoder} (D).
-
-        The pipeline is represented in Figure~\ref{figure:diagram_of_autoencoder}.
+        The \emph{autoencoder} architecture is a design to reconstruct its input, and is composed by an \emph{encoder} (E) and a \emph{decoder} (D). The pipeline is represented in Figure~\ref{figure:diagram_of_autoencoder}.
         % \[x \to E \to z \to D \to \hat{x}\]
 
         \begin{figure}[H]
@@ -161,10 +164,8 @@
 
     \begin{definition}
         \normalfont
-        A \emph{generative adversarial network} (GAN) is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
-        In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones.
-
-        This architecture is shown in Figure~\ref{figure:diagram_of_gan}.
+        A \emph{generative adversarial network} (GAN) \cite{NIPS2014_5ca3e9b1} is an interplay between a \emph{generator} (G) and a \emph{discriminator} (D).
+        In that interaction, the generator tries to synthesize samples that mimic real data by giving a randomly created sample through the generator function, while the discriminator needs to distinguish the synthesized examples from the real ones. This adversarial process is illustrated in Figure~\ref{figure:diagram_of_gan}. During training, we alternate the optimization of the losses presented in Eq. \ref{equation:disc_loss} and Eq. \ref{equation:gen_loss} for the discriminator and generator, respectively.
 
         \begin{figure}[H]
             \centering
@@ -175,13 +176,24 @@
             \label{figure:diagram_of_gan}
         \end{figure}
 
-        \textbf{[ADD THE GAN LOSS HEURISTIC EITHER HERE OR IN EXPERIMENTAL SECTION]}
+        \begin{equation}
+            \mathcal{L}_{disc} = \mathop{\mathbb{E}}_{x \sim p_x(x)}[log D(x)] + \mathop{\mathbb{E}}_{z \sim p_z(z)}[log (1 - D(G(z))]
+            \label{equation:disc_loss}
+        \end{equation}
+
+        \begin{equation}
+            \mathcal{L}_{gen} = \mathop{\mathbb{E}}_{z \sim p_z(z)}[log D(G(z))]
+            \label{equation:gen_loss}
+        \end{equation}
 
     \end{definition}
 
     \begin{definition}
         \normalfont
-        We say that a set of points is \emph{permutation invariant} when
+        \textit{Permutation invariance} of a point cloud implies that any reordering of the points yields a point cloud that represents the same shape. This complicates comparisons between two point sets which is needed to define a reconstruction loss, as noted in~\cite{pmlr-v80-achlioptas18a} and requires a permutation invariant learning of encoded features.
+
+        We say that a model (e.g., a neural network classifier) is \emph{permutation invariant} when it does not assume any spatial relationships between the features in the input. E.g., if one permutes the points in the input point set and the performance of the model remains the same, then the model is permutation invariant.
+        The generative models considered in this work are permutation invariant by construction since they contain 1-D convolutional layers with kernel size 1, allowing encoding the points \textit{independently}, and a symmetric (permutation invariant) max-pooling operation over the feature dimension.
         % ...
     \end{definition}
 
@@ -204,6 +216,7 @@
 
 
     \section{Data, experiments and findings}
+    \label{sec:data_experiments_findings}
     \contentdescription{
         Data, experiments and findings (30-40\%):
         Describe the data you are working with for your project.
@@ -232,9 +245,10 @@
 
     We use shapes of one class and uniformly sample 2048 points from each point cloud to train models. We use the default ``trainval'' set (i.e., training + validation data) for training, and compute the metrics on the test set (i.e., \verb|split="test"|).
 
-    We conduct two types of experiments: with raw GANs (\textit{r-GANs}) and latent GANs (\textit{l-GANs}). In the latter, we use AEs to learn the encoding of the point clouds. The architectures of all models are replicated from the original work (see Appendix in \cite{pmlr-v80-achlioptas18a} and the model summary outputs in the notebooks that we provide in the supplementary material).
+    We conduct two types of experiments: with raw GANs (\textit{r-GANs}) and latent GANs (\textit{l-GANs}). In the latter, we use deep AEs to learn the encoding of the point clouds. The architectures of all models are replicated from the original work (see Appendix in \cite{pmlr-v80-achlioptas18a} and the model summary outputs in the notebooks that we provide in the supplementary material). The important feature of the r-GAN generator and the encoder part of the AE are 1-D convolutional layers that allow applying the learned parameters feature-wise \textit{independently}.
 
-    \subsection{r-GAN experiments}
+    \subsection{r-GAN experiments} This type of GAN operates on the raw data, i.e., a $2048 \times 3$ matrix representing a 3D shape. We use the hyperparameters to train the r-GAN suggested in the original work, but stop the optimization after 200 epochs (instead of the suggested 2000) for the sake of computational efficiency.
+    The generatedfor the shapes of categories \verb|Lamp|, \verb|Table|, and \verb|Chair| are presented in Figure.
 
     \subsection{l-GAN experiments}
 
@@ -281,18 +295,18 @@
         \centering
         \begin{tabular}{lll}
             \toprule
-            Model           & Fidelity $\downarrow$ & Coverage $\uparrow$ \\
+            Model          & Fidelity $\downarrow$ & Coverage $\uparrow$ \\
             \midrule
-            r-GAN Chair     & 0.0022                & 14.35               \\
-            l-GAN Chair     & 0.0017                & 38.21               \\
+            r-GAN Chair    & 0.0022                & 14.35               \\
+            l-GAN Chair    & 0.0017                & 38.21               \\
             \midrule
-            r-GAN Lamp      & 0.0196                & 17.48               \\
-            l-GAN Lamp      & 0.0058                & 18.18               \\
+            r-GAN Lamp     & 0.0196                & 17.48               \\
+            l-GAN Lamp     & 0.0058                & 18.18               \\
             \midrule
-            r-GAN Table     & 0.023                 & 22.05               \\
-            l-GAN Table     & 0.002                 & 34.91               \\
+            r-GAN Table    & 0.023                 & 22.05               \\
+            l-GAN Table    & 0.002                 & 34.91               \\
             \midrule
-            r-GAN Airplane & 0.001                & 12.02               \\
+            r-GAN Airplane & 0.001                 & 12.02               \\
             l-GAN Airplane & 0.0007                & 27.27               \\
             \bottomrule
         \end{tabular}
@@ -303,6 +317,7 @@
 
 
     \section{Challenges and conclusions}
+    \label{sec:conclusions}
     \contentdescription{
         Challenges and Conclusions (5-15\%):
         Challenges you faced when reimplementing the paper and conducting the experiments.
