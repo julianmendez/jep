@@ -16,7 +16,7 @@
 
 \usepackage{graphicx}
 
-\graphicspath{ {./images/} }
+\graphicspath{ {./images/} {./images/ae/} {./images/bad/} {./images/curves/} {./images/latent/} {./images/raw/} }
 
 \usepackage{amsthm}
 \newtheorem{definition}{Definition}
@@ -57,7 +57,7 @@
         Recognition and representation of 3D geometric data is a challenging and fruitful topic that has fast developed in recent years. An intuitive way to represent such type of data is as a set of 3D locations in a Euclidean coordinate frame, i.e., as a \textit{point cloud}. However, as for other types of data, generating 3D point clouds possess a unique set of challenges, which inspired us consider this task.
         In this report,  we analyze and implement the raw and latent generative adversarial network (r- and l-GAN, respectively) methods proposed in the original work~\cite{pmlr-v80-achlioptas18a} to generate point clouds of 3D shapes of different categories using the ShapeNet data. The main feature of the latter is the use of a deep autoencoder (AE) network that is trained by minimizing the Chamfer pseudo-distance and has ``state-of-the-art reconstruction quality and generalization ability''.
         Importantly, apart from (subjective) qualitative assessment of the generated geometric data, we perform quantitative evaluation of the generative models by using the introduced measures of sample fidelity (i.e., \textit{minimum matching distance}) and diversity (i.e., \textit{coverage}) based on matchings between sets of point clouds.
-        The original work implementation\footnote{\url{https://github.com/optas/latent_3d_points}} is in TensorFlow, whereas we use PyTorch\footnote{\url{https://pytorch.org}} to build the models and conduct experiments.
+        The original work implementation\footnote{\url{https://github.com/optas/latent_3d_points}} is in TensorFlow\footnote{\url{https://www.tensorflow.org/}}, whereas we use PyTorch\footnote{\url{https://pytorch.org}} to build the models and conduct experiments.
     \end{abstract}
 
 
@@ -77,7 +77,7 @@
 
     We applied three approaches: raw GAN, autoencoder, and l-GAN, which are defined in the subsequent sections.
 
-    This report presents analysis and the results of a reimplementation~\cite{pmlr-v80-achlioptas18a} using PyTorch.
+    This report presents analysis and the results of a reimplementation of~\cite{pmlr-v80-achlioptas18a} using PyTorch.
 
 
     \section{Related work}
@@ -135,8 +135,12 @@
         \normalfont
         The \emph{Chamfer (pseudo)-distance (CD)} between point clouds $S_1$ and $S_2$ is defined as follows:
 
-        \[d_{CD}(S_{1}, S_{2}) = \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} +
-        \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}\]
+        \begin{equation}
+            d_{CD}(S_{1}, S_{2}) =
+            \sum_{x \in S_{1}} \min _{y \in S_{2}} || x - y||_{2}^{2} + \sum_{y \in S_{2}} \min_{x \in S_{1}} ||x - y||_{2}^{2}
+            \label{equation:chamfer_distance}
+        \end{equation}
+
     \end{definition}
 
     % The EMD and the CD are used to measure the sampling error of the results.
@@ -177,8 +181,8 @@
         \end{figure}
 
         \begin{equation}
-            \mathcal{L}_{disc} = \mathop{\mathbb{E}}_{x \sim p_x(x)}[log D(x)] + \mathop{\mathbb{E}}_{z \sim p_z(z)}[log (1 - D(G(z))]
-            \label{equation:disc_loss}
+            \mathcal{L}_{dis} = \mathop{\mathbb{E}}_{x \sim p_x(x)}[log D(x)] + \mathop{\mathbb{E}}_{z \sim p_z(z)}[log (1 - D(G(z))]
+            \label{equation:dis_loss}
         \end{equation}
 
         \begin{equation}
@@ -247,21 +251,16 @@
 
     We conduct two types of experiments: with raw GANs (\textit{r-GANs}) and latent GANs (\textit{l-GANs}). In the latter, we use deep AEs to learn the encoding of the point clouds. The architectures of all models are replicated from the original work (see Appendix in \cite{pmlr-v80-achlioptas18a} and the model summary outputs in the notebooks that we provide in the supplementary material). The important feature of the r-GAN generator and the encoder part of the AE are 1-D convolutional layers that allow applying the learned parameters feature-wise \textit{independently}.
 
-    \subsection{r-GAN experiments} This type of GAN operates on the raw data, i.e., a $2048 \times 3$ matrix representing a 3D shape. We use the hyperparameters to train the r-GAN suggested in the original work, but stop the optimization after 200 epochs (instead of the suggested 2000) for the sake of computational efficiency.
-    The generatedfor the shapes of categories \verb|Lamp|, \verb|Table|, and \verb|Chair| are presented in Figure.
+    \subsection{r-GAN experiments} As the name suggests, this type of GAN operates on the raw data, i.e., a $2048 \times 3$ matrix representing a 3D shape. We use the hyperparameters to train the r-GAN that are suggested in the original work, but stop the optimization after 200 epochs (instead of the suggested 2000) for the sake of computational efficiency. The generator takes as input a random vector of length $128$ sampled from $\mathcal{N}(0,0.04)$.
+    The generated samples of the shapes of categories \verb|Lamp|, \verb|Table|, and \verb|Chair| are presented in Figure~. Some graphs of the generator and discriminator losses (defined by \eqref{equation:gen_loss} and \eqref{equation:dis_loss}, respectively) are presented in Figure~.
+    The quantitative results for the samples, i.e., the fidelity and coverage scores for the corresponding generated and test point cloud sets are shown in Table~\ref{table:results}.
 
-    \subsection{l-GAN experiments}
+    \subsection{l-GAN experiments} Instead of utilizing the raw data, the l-GAN takes as input the encoding of the raw data. The encoding of a raw point-cloud is obtained by passing the data through the encoder part of a pretrained AE trained for each shape separately by minimizing the CD loss function~\eqref{equation:chamfer_distance}.
 
-    We can describe our experiments using 3 stages.
-
-    \textbf{Stage 1}
-    We trained our encoder (E) as defined in the definition of autoencoder.
-    In the bottleneck, $z$ represents the compressed representation.
-    For comparison, in the raw GAN approach, a point cloud is used instead of a compressed representation.
-
-
-    \textbf{Stage 2}
-    We sampled using a Gaussian distribution $\mathcal{N}(0,\sigma)$.
+    We can describe our experiments with l-GANs using the following 3 stages:
+    \textbf{Stage 1} For a given shape category, train an autoencoder by minimizing the CD loss~\eqref{equation:chamfer_distance} between the input and reconstructed point clouds. The output of the encoder, the bottleneck $z$, represents the compressed representation, i.e., \textit{encoding}.
+    % For comparison, in the raw GAN approach, a point cloud is used instead of a compressed representation.
+    \textbf{Stage 2} We sample a Gaussian distribution $\mathcal{N}(0,\sigma)$.
 
 
     \textbf{Stage 3}
@@ -315,6 +314,79 @@
 
     \subsection{Results}
 
+    As we can see from Figure~, the quality of the resulting r-GAN generated samples of \verb|Table| and \verb|Chair| is reasonably good, considering the 10-fold shorter optimization we performed compared to the baseline. However, the r-GAN generating samples of \verb|Lamp| does not produce as good point clouds. This is well reflected by the generator and discriminator loss graph displayed in Figure~. A possible reason for this phenomenon is the amount of training data: we observe a strong correlation between the number of training samples and the quality of shapes generated.
+
+
+
+
+    \begin{figure}
+        \centering
+        \begin{tabular}{lllllll}
+            \includegraphics[width = 60mm]{chair_ae_1} &
+            \includegraphics[width = 60mm]{chair_ae_2} \\
+            \includegraphics[width = 60mm]{lamp_ae_1} &
+            \includegraphics[width = 60mm]{lamp_ae_2} \\
+            \includegraphics[width = 60mm]{lamp_ae_3} \\
+            \includegraphics[width = 60mm]{table_ae_1} &
+            \includegraphics[width = 60mm]{table_ae_2} \\
+        \end{tabular}
+        \caption{Samples generated with autoencoders.}
+        \label{figure:samples_generated_with_autoencoders}
+    \end{figure}
+
+
+    \begin{figure}
+        \centering
+        \begin{tabular}{lllllll}
+            \includegraphics[width = 30mm]{chair_raw_gen_1} &
+            \includegraphics[width = 30mm]{chair_raw_gen_2} &
+            \includegraphics[width = 30mm]{chair_raw_gen_3} \\
+        \end{tabular}
+        \caption{Samples generated with raw GAN.}
+        \label{figure:samples_generated_with_raw_gan}
+    \end{figure}
+
+
+    \begin{figure}
+        \centering
+        \begin{tabular}{lllllll}
+            \includegraphics[width = 30mm]{chair_latent_gen_1} &
+            \includegraphics[width = 30mm]{chair_latent_gen_2} &
+            \includegraphics[width = 30mm]{lamp_latent_gen_1} &
+            \includegraphics[width = 30mm]{lamp_latent_gen_2} \\
+            \includegraphics[width = 30mm]{table_latent_gen_1} &
+            \includegraphics[width = 30mm]{table_latent_gen_2} &
+            \includegraphics[width = 30mm]{table_latent_gen_4} \\
+        \end{tabular}
+        \caption{Samples generated with latent GAN.}
+        \label{figure:samples_generated_with_latent_gan}
+    \end{figure}
+
+
+    \begin{figure}
+        \centering
+        \begin{tabular}{lllllll}
+            \includegraphics[width = 30mm]{chair_latent_gen_3_bad} &
+            \includegraphics[width = 30mm]{lamp_latent_gen_3_bad} &
+            \includegraphics[width = 30mm]{table_latent_gen_3_bad} \\
+        \end{tabular}
+        \caption{Bad samples generated with latent GAN.}
+        \label{figure:bad_samples_generated_with_latent_gan}
+    \end{figure}
+
+
+    \begin{figure}
+        \centering
+        \begin{tabular}{lllllll}
+            \includegraphics[width = 30mm]{chair_l_gan_curves} &
+            \includegraphics[width = 30mm]{table_l_gan_curves} &
+            \includegraphics[width = 30mm]{chair_raw_gan_curves} &
+            \includegraphics[width = 30mm]{lamp_raw_gan_curves} \\
+        \end{tabular}
+        \caption{Curves for latent GAN and raw GAN.}
+        \label{figure:curves_for_latent_gan_and_raw_gan}
+    \end{figure}
+
 
     \section{Challenges and conclusions}
     \label{sec:conclusions}
@@ -333,9 +405,9 @@
         Suggest ideas for future extensions or new applications of your ideas.
     }
 
-    One of the conclusions we arrived is that we were able to reproduce the results in~\cite{pmlr-v80-achlioptas18a}.
+    We are able to successfully reproduce the results in~\cite{pmlr-v80-achlioptas18a}.
 
-    The latent space GANs (l-GANs) was able to achieve better reconstructions.
+    Utilizing the latent space GANs (l-GANs), we can achieve better reconstructions, as discussed in the original work.
     By contrast, the raw GAN performance is considerably lower when not enough data is provided.
 
     For example, in some of our experiments we found that the lamp data were insufficient to train the raw GAN reasonably well.
